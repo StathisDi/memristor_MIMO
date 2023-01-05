@@ -37,11 +37,11 @@ import re
 class memristor:
     devices = 0
 
-    def __init__(self, Ron=10, Roff=1000):
+    def __init__(self, Ron=1@u_Ω, Roff=1000@u_Ω):
         self.id = memristor.devices
         self.Ron = Ron
         self.Roff = Roff
-        self.R = numpy.random.uniform(self.Ron, self.Roff)
+        self.R = 1@u_Ω
         memristor.devices += 1
 
     def __str__(self):
@@ -64,6 +64,11 @@ class crossbar:
         self.elements = rows*cols
         self.devices = [[memristor(0, 10) for x in range(cols)] for y in range(rows)]
         self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
+        self.sources_values = [1@u_V for y in range(rows)]
+        self.I_outputs = [0@u_A for x in range(cols)]
+        self.netlist_created = 0
+        self.res = []
+        self.sources = []
 
     def __str__(self):
         return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}"
@@ -83,38 +88,72 @@ class crossbar:
         print("\t Device state: ")
         for y in range(self.rows):
             print(self.device_state[y])
+        print("\t Sources:")
+        print(self.sources_values)
+        print("\t Current output:")
+        print(self.I_outputs)
+
+    # Set source values.
+    def set_sources(self, v):
+        self.sources_values = v
+        if self.netlist_created == 1:
+            # TODO go through the sources in the netlist and set them
+            for y in range(self.rows):
+                self.sources[y].dc_value = v[y]
+            print("Netlist is updated!")
+        else:
+            print("Source values are updated, waiting to create netlist!")
+
+    # Print the circuit sources
+    def print_sources(self):
+        if self.netlist_created == 1:
+            print("Defined sources in the circuit: ", self.circuit.title)
+            for source in self.sources:
+                print(source)
+        else:
+            print("There is no netlist created!")
 
     # Create the crossbar netlist
     def create_netlist(self):
+        # Set flag that the netlist has been created
+        self.netlist_created = 1
         self.logger = Logging.setup_logging()
 
-        self.circuit = Circuit('Voltage Divider')
+        self.circuit = Circuit(self.name)
 
         # Node 0 i think is ground
-        self.circuit.V('input', 1, self.circuit.gnd, 10@u_V)
+        # Generate sources
+        for y in range(self.rows):
+            self.circuit.V(str(y), y+1, self.circuit.gnd, self.sources_values[y])
+        # Setup devices:
         self.circuit.R(1, 1, 2, 15@u_Ω)
-        self.circuit.R(2, 2, self.circuit.gnd, 5@u_Ω)
-        self.circuit.R(3, 1, 3, 7.5@u_Ω)
-        self.circuit.R(4, 3, self.circuit.gnd, 2.5@u_Ω)
+        self.circuit.R(2, 3, self.circuit.gnd, 5@u_Ω)
+        self.circuit.R(3, 2, 4, 7.5@u_Ω)
+        self.circuit.R(4, 4, self.circuit.gnd, 2.5@u_Ω)
 
-    # Solve the circuit
-    def circuit_solver(self):
         regEx = r"R\s*"
-        res = []
 
         for element in self.circuit.elements:
             ch_str = element.name
             if re.match(regEx, ch_str):
-                res.append(element)
+                self.res.append(element)
+            else:
+                self.sources.append(element)
 
-        for i in res:
+        for i in self.res:
             i.plus.add_current_probe(self.circuit)
 
-        simulator = self.circuit.simulator(temperature=25, nominal_temperature=25)
+    # Solve the circuit
+    def circuit_solver(self):
+        if self.netlist_created == 1:
 
-        analysis = simulator.operating_point()
-        for node in analysis.nodes.values():
-            print('Node {}: {} V'.format(str(node), float(node)))
+            simulator = self.circuit.simulator(temperature=25, nominal_temperature=25)
 
-        for branch in analysis.branches.values():
-            print('Branch {}: {} A'.format(str(branch), float(branch)))
+            analysis = simulator.operating_point()
+            for node in analysis.nodes.values():
+                print('Node {}: {} V'.format(str(node), float(node)))
+
+            for branch in analysis.branches.values():
+                print('Branch {}: {} A'.format(str(branch), float(branch)))
+        else:
+            print("There is no netlist created!")
