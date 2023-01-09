@@ -36,13 +36,13 @@ from PySpice.Unit import *
 
 
 def main():
-    cross = crossbar("Test crossbar", 2, 2)
+    cross = crossbar("Test crossbar", 7, 3)
     cross.detail_print()
-
+    cross.print_device_coordinates()
     cross.create_netlist()
     cross.print_sources()
     cross.circuit_solver()
-    cross.set_sources([20@u_V, 20@u_V])
+    cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
     cross.print_sources()
     cross.circuit_solver()
 

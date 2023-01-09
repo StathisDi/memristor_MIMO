@@ -37,15 +37,20 @@ import re
 class memristor:
     devices = 0
 
-    def __init__(self, Ron=1@u_Ω, Roff=1000@u_Ω):
+    def __init__(self, rows=-1, cols=-1, Ron=1@u_Ω, Roff=1000@u_Ω):
         self.id = memristor.devices
+        if (rows != -1 or cols != -1):
+            self.coordinates = (self.id//cols, self.id % cols)
+        else:
+            print("Number of Rows and Columns must be defined!")
+            exit(-1)
         self.Ron = Ron
         self.Roff = Roff
         self.R = 1@u_Ω
         memristor.devices += 1
 
     def __str__(self):
-        return f"ID:{self.id}, Ron:{self.Ron}, Roff:{self.Roff}, R:{self.R}"
+        return f"ID:{self.id}, Ron:{self.Ron}, Roff:{self.Roff}, R:{self.R}, Location:{self.coordinates}"
 
 # 1 Class for the Crossbar
 #   Is build as a spice netlist using pyspice
@@ -62,7 +67,7 @@ class crossbar:
         self.inputs = rows
         self.outputs = cols
         self.elements = rows*cols
-        self.devices = [[memristor(0, 10) for x in range(cols)] for y in range(rows)]
+        self.devices = [[memristor(rows, cols, 0, 10) for x in range(cols)] for y in range(rows)]
         self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         self.sources_values = [1@u_V for y in range(rows)]
         self.I_outputs = [0@u_A for x in range(cols)]
@@ -72,6 +77,12 @@ class crossbar:
 
     def __str__(self):
         return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}"
+
+    def print_device_coordinates(self):
+        for y in range(self.rows):
+            for x in range(self.cols):
+                print(self.devices[y][x].coordinates, end=" ")
+            print("")
 
     def update_state(self):
         for y in range(self.rows):
@@ -96,8 +107,10 @@ class crossbar:
     # Set source values.
     def set_sources(self, v):
         self.sources_values = v
+        if (self.sources.__len__() != v.__len__()):
+            print("Input vector of sources, not equal size as the number of sources!")
+            return (-2)
         if self.netlist_created == 1:
-            # TODO go through the sources in the netlist and set them
             for y in range(self.rows):
                 self.sources[y].dc_value = v[y]
             print("Netlist is updated!")
@@ -113,6 +126,11 @@ class crossbar:
         else:
             print("There is no netlist created!")
 
+    # Get current values per branch
+    def get_current(self):
+      # TODO build function to calculate and retrieve the sum of currents
+        print()
+
     # Create the crossbar netlist
     def create_netlist(self):
         # Set flag that the netlist has been created
@@ -126,10 +144,16 @@ class crossbar:
         for y in range(self.rows):
             self.circuit.V(str(y), y+1, self.circuit.gnd, self.sources_values[y])
         # Setup devices:
-        self.circuit.R(1, 1, 2, 15@u_Ω)
-        self.circuit.R(2, 3, self.circuit.gnd, 5@u_Ω)
-        self.circuit.R(3, 2, 4, 7.5@u_Ω)
-        self.circuit.R(4, 4, self.circuit.gnd, 2.5@u_Ω)
+        for y in range(self.rows):
+            for x in range(self.cols):
+                id = self.devices[y][x].id
+                resistance = self.devices[y][x].R
+                self.circuit.R(id, y+1, self.circuit.gnd, resistance)
+        print(self.circuit)
+        # self.circuit.R(1, 1, 2, 15@u_Ω)
+        # self.circuit.R(2, 3, self.circuit.gnd, 5@u_Ω)
+        # self.circuit.R(3, 2, 4, 7.5@u_Ω)
+        # self.circuit.R(4, 4, self.circuit.gnd, 2.5@u_Ω)
 
         regEx = r"R\s*"
 
