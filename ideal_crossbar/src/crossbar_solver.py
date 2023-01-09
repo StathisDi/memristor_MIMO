@@ -42,7 +42,11 @@ def main():
     cross.create_netlist()
     cross.print_sources()
     cross.circuit_solver()
+    # try:
     cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
+    # except Exception as E:
+    #    print(E)
+    #    exit()
     cross.print_sources()
     cross.circuit_solver()
 

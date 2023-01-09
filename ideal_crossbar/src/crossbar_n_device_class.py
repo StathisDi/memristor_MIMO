@@ -24,9 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# Code structure:
-# 1 Class for the device (memristor):
-#   Has: State, solver, and other device properties, input is the voltage
+
 import PySpice.Logging.Logging as Logging
 from PySpice.Spice.Netlist import Circuit
 from PySpice.Unit import *
@@ -34,6 +32,8 @@ import numpy
 import re
 
 
+# 1 Class for the device (memristor):
+#   Has: State, solver, and other device properties, input is the voltage
 class memristor:
     devices = 0
 
@@ -52,12 +52,11 @@ class memristor:
     def __str__(self):
         return f"ID:{self.id}, Ron:{self.Ron}, Roff:{self.Roff}, R:{self.R}, Location:{self.coordinates}"
 
+
 # 1 Class for the Crossbar
 #   Is build as a spice netlist using pyspice
 #   Comprises from resistances in a nxm crossbar, where the n is the input rows and m the output
 #   Has a solver
-
-
 class crossbar:
 
     def __init__(self, name="", rows=0, cols=0):
@@ -108,8 +107,8 @@ class crossbar:
     def set_sources(self, v):
         self.sources_values = v
         if (self.sources.__len__() != v.__len__()):
-            print("Input vector of sources, not equal size as the number of sources!")
-            return (-2)
+            raise Exception("Input vector of sources, not equal size as the number of sources!")
+
         if self.netlist_created == 1:
             for y in range(self.rows):
                 self.sources[y].dc_value = v[y]
@@ -150,10 +149,6 @@ class crossbar:
                 resistance = self.devices[y][x].R
                 self.circuit.R(id, y+1, self.circuit.gnd, resistance)
         print(self.circuit)
-        # self.circuit.R(1, 1, 2, 15@u_Ω)
-        # self.circuit.R(2, 3, self.circuit.gnd, 5@u_Ω)
-        # self.circuit.R(3, 2, 4, 7.5@u_Ω)
-        # self.circuit.R(4, 4, self.circuit.gnd, 2.5@u_Ω)
 
         regEx = r"R\s*"
 
