@@ -130,6 +130,16 @@ class crossbar:
       # TODO build function to calculate and retrieve the sum of currents
         print()
 
+    # Update device
+    def update_device(self, x, y):
+        # TODO update the internal state of device with coordinates x,y
+        print()
+
+    # Updated all devices
+    def update_all_devices(self, v):
+        # TODO update the values of all devices
+        [self.update_device(x, y) for x in range(self.cols) for y in range(self.rows)]
+
     # Create the crossbar netlist
     def create_netlist(self):
         # Set flag that the netlist has been created
