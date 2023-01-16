@@ -1,4 +1,4 @@
-#!python3.7
+#!python3
 
 """
 MIT License
@@ -30,10 +30,13 @@ from PySpice.Spice.Netlist import Circuit
 from PySpice.Unit import *
 import numpy
 import re
-
+from utility import utility
+# TODO add verbose statements
 
 # 1 Class for the device (memristor):
 #   Has: State, solver, and other device properties, input is the voltage
+
+
 class memristor:
     devices = 0
 
@@ -42,8 +45,7 @@ class memristor:
         if (rows != -1 or cols != -1):
             self.coordinates = (self.id//cols, self.id % cols)
         else:
-            print("Number of Rows and Columns must be defined!")
-            exit(-1)
+            raise Exception("Number of Rows and Columns must be defined!")
         self.Ron = Ron
         self.Roff = Roff
         self.R = 1@u_Ω
@@ -51,6 +53,13 @@ class memristor:
 
     def __str__(self):
         return f"ID:{self.id}, Ron:{self.Ron}, Roff:{self.Roff}, R:{self.R}, Location:{self.coordinates}"
+
+    def update_state(self, resistance):
+        # TODO add variation here
+        if self.Ron <= resistance <= self.Roff:
+            self.R = resistance
+        else:
+            raise Exception("Resistance programmed outside of [Ron, Roff] range!")
 
 
 # 1 Class for the Crossbar
@@ -66,7 +75,7 @@ class crossbar:
         self.inputs = rows
         self.outputs = cols
         self.elements = rows*cols
-        self.devices = [[memristor(rows, cols, 0, 10) for x in range(cols)] for y in range(rows)]
+        self.devices = [[memristor(rows, cols, 0@u_Ω, 10@u_Ω) for x in range(cols)] for y in range(rows)]
         self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         self.sources_values = [1@u_V for y in range(rows)]
         self.I_outputs = [0@u_A for x in range(cols)]
@@ -80,28 +89,34 @@ class crossbar:
     def print_device_coordinates(self):
         for y in range(self.rows):
             for x in range(self.cols):
-                print(self.devices[y][x].coordinates, end=" ")
-            print("")
+                utility.v_print_1(self.devices[y][x].coordinates, end=" ")
+            utility.v_print_1("")
 
-    def update_state(self):
-        for y in range(self.rows):
-            for x in range(self.cols):
-                self.device_state[y][x] = self.devices[y][x].R
+    def print_netlist(self):
+        if self.netlist_created == 1:
+            for y in range(self.rows):
+                utility.v_print_1(self.sources[y], end=" --> ")
+                for x in range(self.cols):
+                    utility.v_print_1(self.res[y*self.cols+x].resistance, end=" ")
+                utility.v_print_1("")
+            utility.v_print_1(self.circuit)
+        else:
+            raise Exception("Netlist has not been created!")
 
     def detail_print(self):
-        print(self.name, ":")
-        print("\t Rows: ", self.rows)
-        print("\t Columns: ", self.cols)
-        print("\t Inputs: ", self.rows)
-        print("\t Outputs: ", self.cols)
-        print("\t Elements: ", self.elements)
-        print("\t Device state: ")
+        utility.v_print_1(self.name, ":")
+        utility.v_print_1("\t Rows: ", self.rows)
+        utility.v_print_1("\t Columns: ", self.cols)
+        utility.v_print_1("\t Inputs: ", self.rows)
+        utility.v_print_1("\t Outputs: ", self.cols)
+        utility.v_print_1("\t Elements: ", self.elements)
+        utility.v_print_1("\t Device state: ")
         for y in range(self.rows):
-            print(self.device_state[y])
-        print("\t Sources:")
-        print(self.sources_values)
-        print("\t Current output:")
-        print(self.I_outputs)
+            utility.v_print_1(self.device_state[y])
+        utility.v_print_1("\t Sources:")
+        utility.v_print_1(self.sources_values)
+        utility.v_print_1("\t Current output:")
+        utility.v_print_1(self.I_outputs)
 
     # Set source values.
     def set_sources(self, v):
@@ -112,18 +127,18 @@ class crossbar:
         if self.netlist_created == 1:
             for y in range(self.rows):
                 self.sources[y].dc_value = v[y]
-            print("Netlist is updated!")
+            utility.v_print_1("Netlist is updated!")
         else:
-            print("Source values are updated, waiting to create netlist!")
+            utility.v_print_1("Source values are updated, waiting to create netlist!")
 
     # Print the circuit sources
     def print_sources(self):
         if self.netlist_created == 1:
-            print("Defined sources in the circuit: ", self.circuit.title)
+            utility.v_print_1("Defined sources in the circuit: ", self.circuit.title)
             for source in self.sources:
-                print(source)
+                utility.v_print_1(source)
         else:
-            print("There is no netlist created!")
+            utility.v_print_1("There is no netlist created!")
 
     # Get current values per branch
     def get_current(self):
@@ -131,14 +146,36 @@ class crossbar:
         print()
 
     # Update device
-    def update_device(self, x, y):
-        # TODO update the internal state of device with coordinates x,y
-        print()
-
+    # Updates the internal state of a device in node [y,x] with a given resistance.
+    # It updates the memristor element and the spice netlist
+    def update_device(self, x, y, target_resistance):
+        utility.v_print_1("Updating device resistance. Device: [", y, ",", x, "]")
+        if not ((0 <= y < self.rows) and (0 <= x <= self.cols)):
+            raise Exception("Try to access device with out of bounds coordinates.\nGiven coordinates: [" +
+                            str(y)+","+str(x)+"]. Valid coordinate range y: [0," +
+                            str(self.rows-1)+"] range of x: [0,"+str(self.cols-1)+"]")
+        self.devices[y][x].update_state(target_resistance)
+        self.device_state[y][x] = self.devices[y][x].R
+        index = y*self.cols+x  # Translate the 2D index to the vector index of the netlist
+        if self.netlist_created == 1:
+            self.res[index].resistance = self.devices[y][x].R
+            utility.v_print_1("Resistances in netlist is updated!")
+        else:
+            utility.v_print_1("Resistance values are updated, waiting to create netlist!")
     # Updated all devices
-    def update_all_devices(self, v):
-        # TODO update the values of all devices
-        [self.update_device(x, y) for x in range(self.cols) for y in range(self.rows)]
+
+    def update_all_devices(self, resistance_matrix):
+        # resistance_matrix.__len__() --> # rows
+        # resistance_matrix[0].__len__() --> # columns
+        if (resistance_matrix.__len__() != self.rows):
+            raise Exception("Rows of resistance matrix not equal rows of crossbar!\nExpected number of rows: " +
+                            str(self.rows) + " Rows in the input matrix: " + str(resistance_matrix.__len__()))
+        for matrix_row in resistance_matrix:
+            if (matrix_row.__len__() != self.cols):
+                raise Exception("Columns of resistance matrix in row "+str(resistance_matrix.index(matrix_row)) +
+                                " not equal columns of crossbar!\nExpected number of columns: "+str(self.cols)+". Columns in matrix row:  " +
+                                str(matrix_row.__len__())+"\nGiven matrix row: "+str(matrix_row))
+        [self.update_device(x, y, resistance_matrix[y][x]) for x in range(self.cols) for y in range(self.rows)]
 
     # Create the crossbar netlist
     def create_netlist(self):
@@ -158,7 +195,7 @@ class crossbar:
                 id = self.devices[y][x].id
                 resistance = self.devices[y][x].R
                 self.circuit.R(id, y+1, self.circuit.gnd, resistance)
-        print(self.circuit)
+        utility.v_print_1(self.circuit)
 
         regEx = r"R\s*"
 
@@ -180,9 +217,9 @@ class crossbar:
 
             analysis = simulator.operating_point()
             for node in analysis.nodes.values():
-                print('Node {}: {} V'.format(str(node), float(node)))
+                utility.v_print_1('Node {}: {} V'.format(str(node), float(node)))
 
             for branch in analysis.branches.values():
-                print('Branch {}: {} A'.format(str(branch), float(branch)))
+                utility.v_print_1('Branch {}: {} A'.format(str(branch), float(branch)))
         else:
-            print("There is no netlist created!")
+            utility.v_print_1("There is no netlist created!")

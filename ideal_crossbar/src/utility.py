@@ -24,36 +24,22 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-# Crossbar dimensions:
-# Rows --> Input sources
-# Columns --> Outputs during computation, ground during programming
-
-# Calculation of Voltages depending on the state of the devices (R) and the Voltage sources
-
-# 1 Main program that reads the above and simulates
-from crossbar_n_device_class import crossbar
-from utility import utility
-from PySpice.Unit import *
+# Class with utility functions
 
 
-def main():
-    util = utility(1)
-    cross = crossbar("Test crossbar", 2, 3)
-    cross.detail_print()
-    cross.print_device_coordinates()
-    cross.create_netlist()
-    cross.print_netlist()
-    cross.update_all_devices([[6@u_Ω, 5@u_Ω, 4@u_Ω], [3@u_Ω, 2@u_Ω, 1@u_Ω]])
-    cross.print_netlist()
-    # cross.print_sources()
-    # cross.circuit_solver()
-    # try:
-    #    cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
-    # except Exception as E:
-    #    print(E)
-    # cross.print_sources()
-    # cross.circuit_solver()
+class utility:
+    verbosity = 0
 
+    def __init__(self, verb=-1):
+        if (0 <= verb <= 2):
+            utility.verbosity = verb
+        else:
+            raise Exception("Verbosity level can take values 0, 1, or 2!")
 
-if __name__ == "__main__":
-    main()
+    def v_print_1(*args, **kwargs):
+        if utility.verbosity >= 1:
+            print(*args, **kwargs)
+
+    def v_print_2(*args, **kwargs):
+        if utility.verbosity >= 2:
+            print(*args, **kwargs)
