@@ -38,15 +38,16 @@ from PySpice.Unit import *
 
 def main():
     util = utility(1)
-    cross = crossbar("Test crossbar", 2, 3)
+    cross = crossbar("Test crossbar", 10, 7)
     cross.detail_print()
     cross.print_device_coordinates()
     cross.create_netlist()
     cross.print_netlist()
-    cross.update_all_devices([[6@u_Ω, 5@u_Ω, 4@u_Ω], [3@u_Ω, 2@u_Ω, 1@u_Ω]])
+    # cross.update_all_devices([[6@u_Ω, 5@u_Ω, 4@u_Ω], [3@u_Ω, 2@u_Ω, 1@u_Ω]])
     cross.print_netlist()
     # cross.print_sources()
-    # cross.circuit_solver()
+    cross.circuit_solver()
+    cross.get_current()
     # try:
     #    cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
     # except Exception as E:

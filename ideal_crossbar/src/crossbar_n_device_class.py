@@ -82,6 +82,8 @@ class crossbar:
         self.netlist_created = 0
         self.res = []
         self.sources = []
+        self.currents = []
+        self.voltages = []
 
     def __str__(self):
         return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}"
@@ -143,7 +145,10 @@ class crossbar:
     # Get current values per branch
     def get_current(self):
       # TODO build function to calculate and retrieve the sum of currents
-        print()
+        # The first row currents are from the sources (negative), the rest are from the resistors
+        # The name conventions (i.e. str format) is Branch vr0_plus for resistors and v9 for sources
+        for i in self.currents:
+            print('Branch {}: {} A'.format(str(i), float(i)))
 
     # Update device
     # Updates the internal state of a device in node [y,x] with a given resistance.
@@ -220,6 +225,6 @@ class crossbar:
                 utility.v_print_1('Node {}: {} V'.format(str(node), float(node)))
 
             for branch in analysis.branches.values():
-                utility.v_print_1('Branch {}: {} A'.format(str(branch), float(branch)))
+                self.currents.append(branch)
         else:
             utility.v_print_1("There is no netlist created!")
