@@ -144,15 +144,21 @@ class crossbar:
 
     # Get current values per branch
     def get_current(self):
-      # TODO build function to calculate and retrieve the sum of currents
         # The first row currents are from the sources (negative), the rest are from the resistors
         # The name conventions (i.e. str format) is Branch vr0_plus for resistors and v9 for sources
+        sum = 0.0@u_A
         for i in self.currents:
             print('Branch {}: {} A'.format(str(i), float(i)))
+            if re.match(r"vr", i._name):  # only consider the branches with resistors
+                id = int(re.findall(r"\d{1,}", i._name)[0])  # Get the id of the resistor
+                # TODO filter and sum the resistors that add to one "branch"
+                sum = sum + i[0]  # Sum over the resistor currents
+        print(sum)
 
     # Update device
     # Updates the internal state of a device in node [y,x] with a given resistance.
     # It updates the memristor element and the spice netlist
+
     def update_device(self, x, y, target_resistance):
         utility.v_print_1("Updating device resistance. Device: [", y, ",", x, "]")
         if not ((0 <= y < self.rows) and (0 <= x <= self.cols)):
@@ -202,13 +208,14 @@ class crossbar:
                 self.circuit.R(id, y+1, self.circuit.gnd, resistance)
         utility.v_print_1(self.circuit)
 
-        regEx = r"R\s*"
+        regExR = r"R\d*"
+        regExV = r"V\d*"
 
         for element in self.circuit.elements:
             ch_str = element.name
-            if re.match(regEx, ch_str):
+            if re.match(regExR, ch_str):  # if the name start with R and is followed by number
                 self.res.append(element)
-            else:
+            if re.match(regExV, ch_str):  # if the name matches V and is followed by numbers
                 self.sources.append(element)
 
         for i in self.res:
@@ -227,4 +234,4 @@ class crossbar:
             for branch in analysis.branches.values():
                 self.currents.append(branch)
         else:
-            utility.v_print_1("There is no netlist created!")
+            raise Exception("ERROR [circuit_solver ", self.name, " ]! There is no defined netlist!")

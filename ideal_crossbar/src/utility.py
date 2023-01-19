@@ -24,9 +24,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
+import re
+
+
 # Class with utility functions
-
-
 class utility:
     verbosity = 0
 
@@ -36,10 +38,12 @@ class utility:
         else:
             raise Exception("Verbosity level can take values 0, 1, or 2!")
 
+    # Level 1 debug messages
     def v_print_1(*args, **kwargs):
         if utility.verbosity >= 1:
             print(*args, **kwargs)
 
+    # Level 2 debug messages
     def v_print_2(*args, **kwargs):
         if utility.verbosity >= 2:
             print(*args, **kwargs)

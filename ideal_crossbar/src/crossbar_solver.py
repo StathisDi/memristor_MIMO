@@ -37,7 +37,7 @@ from PySpice.Unit import *
 
 
 def main():
-    util = utility(1)
+    util = utility(0)
     cross = crossbar("Test crossbar", 10, 7)
     cross.detail_print()
     cross.print_device_coordinates()
