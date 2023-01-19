@@ -34,6 +34,7 @@ SOFTWARE.
 from crossbar_n_device_class import crossbar
 from utility import utility
 from PySpice.Unit import *
+from PySpice.Unit import u_Ω, u_A, u_V
 
 
 def main():

@@ -28,6 +28,7 @@ SOFTWARE.
 import PySpice.Logging.Logging as Logging
 from PySpice.Spice.Netlist import Circuit
 from PySpice.Unit import *
+from PySpice.Unit import u_Ω, u_A, u_V
 import numpy
 import re
 from utility import utility
