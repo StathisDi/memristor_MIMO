@@ -38,15 +38,12 @@ from PySpice.Unit import u_Ω, u_A, u_V
 
 
 def main():
-    util = utility(0)
-    cross = crossbar("Test crossbar", 10, 7)
+    util = utility(2)
+    cross = crossbar("Test crossbar", 1, 2)
     cross.detail_print()
     cross.print_device_coordinates()
     cross.create_netlist()
     cross.print_netlist()
-    # cross.update_all_devices([[6@u_Ω, 5@u_Ω, 4@u_Ω], [3@u_Ω, 2@u_Ω, 1@u_Ω]])
-    cross.print_netlist()
-    # cross.print_sources()
     cross.circuit_solver()
     cross.get_current()
     # try:
