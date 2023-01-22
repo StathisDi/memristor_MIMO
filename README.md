@@ -7,9 +7,9 @@ Experiments and simulation setup for MIMO in memory computation using memristors
 1) Python 3
 2) PySpice
 
-Install instructions for python [here](https://www.python.org/)!
+Installation instructions for python can be found [here](https://www.python.org/)!
 
-Install instructions for PySpice can be found [here](https://pyspice.fabrice-salvaire.fr/releases/v1.4/overview.html#how-to-install-pyspice)!
+Installation instructions for PySpice can be found [here](https://pyspice.fabrice-salvaire.fr/releases/v1.4/overview.html#how-to-install-pyspice)!
 
 # LICENSE
 
