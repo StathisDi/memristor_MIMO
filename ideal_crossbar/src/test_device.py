@@ -29,15 +29,28 @@ SOFTWARE.
 from memristor import memristor
 from utility import utility
 from PySpice.Unit import *
-from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ
+from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_MΩ, as_Ω
+import pint
 
 
 def main():
+    # u = pint.UnitRegistry()
+    # resistance_1 = 10@u_kΩ
+    # resistance_2 = 100@u_Ω
+    # resistance = resistance_2 + resistance_1
+    # resistance = u_kΩ(resistance)
+    # print(resistance)
     util = utility(2)
     mem = memristor(1, 1, 'ideal')
-    mem.set_device_type('ferro')
+    mem.set_device_type('MF/SI')
     print(mem)
-    mem.update_state(2@u_MΩ)
+    target = 1000@u_MΩ
+    mem.update_state(target)
+    print(mem)
+    difference = (as_Ω(mem.R) - target)
+    # print(as_Ω(mem.R))
+    print(u_kΩ(difference))
+    mem.set_device_type('custom', 0.1, 1@u_kΩ, 1000@u_kΩ)
     print(mem)
 
 
