@@ -37,6 +37,7 @@ from PySpice.Unit import u_Ω, u_A, u_V
 
 
 def main():
+    # TODO write an extensive test for the crossbar multiplier
     util = utility(2)
     cross = crossbar("Test crossbar", 2, 2)
     cross.create_netlist()

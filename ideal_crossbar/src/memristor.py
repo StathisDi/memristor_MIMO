@@ -39,7 +39,13 @@ class memristor:
 
     ###################################################################################
     def __init__(self, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0):
-
+        '''
+        Memristor device can be configured to:
+        device: 'ideal', 'ferro', 'MF/SI', 'custom'
+        percentage_var: 0 to 0.1
+        Ron/Roff: Positive values of u_Ω, Ron has to be smaller than Roff
+        sigma, relative/absolute: small values (lower than 1) sigma variation for the random distribution
+        '''
         self.id = memristor.devices
         if (rows != -1 or cols != -1):
             self.coordinates = (self.id//cols, self.id % cols)
@@ -83,6 +89,8 @@ class memristor:
         self.type = device
         if not (0 <= percentage_var <= 0.1):
             raise Exception("Constant percentage variation has to be between 0 and 0.1!\n   Given: ", percentage_var)
+        if (Ron >= Roff):
+            raise Exception("Ron has to be smaller than Roff!")
         utility.v_print_1("Setting device to ", self.type)
         if (device == 'ideal'):
             # Ideal Memristor parameters

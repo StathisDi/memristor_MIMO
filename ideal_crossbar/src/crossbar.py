@@ -50,7 +50,7 @@ class crossbar:
         self.inputs = rows
         self.outputs = cols
         self.elements = rows*cols
-        self.devices = [[memristor(rows, cols, 1@u_pΩ, 10000@u_MΩ) for x in range(cols)] for y in range(rows)]
+        self.devices = [[memristor(rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ) for x in range(cols)] for y in range(rows)]
         self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         self.sources_values = [1@u_V for y in range(rows)]
         self.I_outputs = [0@u_A for x in range(cols)]
