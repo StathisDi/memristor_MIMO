@@ -44,6 +44,7 @@ class crossbar:
     ###################################################################################
     # Constructor
     def __init__(self, name="", rows=0, cols=0, R_read=None, R_read_var=None):
+        utility.v_print_1("Creating crossbar!\n")
         self.name = name
         self.rows = rows
         self.cols = cols
@@ -61,25 +62,36 @@ class crossbar:
         self.currents = []
         self.voltages = []
         self.read_node_str = [str(x)+"_grd" for x in range(cols)]
-        utility.v_print_2(self.read_node_str)
+        utility.v_print_2("Read_nodes: \n", self.read_node_str, "\n")
+
         if R_read_var == None:
             self.R_read_var = [0 for x in range(cols)]
             utility.v_print_1("R variations is not defined, 0% variations will be used!")
         else:
             self.R_read_var = R_read_var
-        # Check the values inside R_read_var
+
         if not (any((0 <= x <= 1) for x in self.R_read_var)):
             raise Exception("R read variations should be in range [0,1]!")
+
         if R_read == None:
             self.R_read = [0.0000000000001@u_pΩ for x in range(cols)]
             utility.v_print_1("R_read is not defined, 0.0000000000001pΩ value will be used!")
         else:  # assign values to R read including variation
             self.R_read = [(r+r*random.uniform(0, x)) for x in self.R_read_var for r in R_read]
 
+        utility.v_print_1("\n\nInitialization of the crossbar setup completed!\n\n")
+
     ###################################################################################
     # to text function
     def __str__(self):
         return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}"
+
+    ###################################################################################
+    # update the type of all devices in the crossbar
+    def update_device_type(self, device='ideal', percentage_var=0,  Ron=1@u_kΩ, Roff=1000@u_kΩ, relative_sigma=0, absolute_sigma=0):
+        for r in self.devices:
+            for i in r:
+                i.set_device_type(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)
 
     ###################################################################################
     # Print the coordinates of each device
@@ -154,6 +166,7 @@ class crossbar:
         [utility.v_print_2("Name: ", str(i), " Value: ", float(i)) for i in self.currents]
         utility.v_print_1("Calculated outputs:")
         utility.v_print_1(self.I_outputs)
+        # TODO return on the double?
         return self.I_outputs
         # self.I_outputs = [0@u_A for x in range(self.cols)]  # Zero out currents
         # for i in self.currents:

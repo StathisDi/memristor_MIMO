@@ -69,7 +69,7 @@ class memristor:
             target_conductance = as_S(1/resistance)
             self.R = as_Ω(self.add_variation(target_conductance))
         else:
-            raise Exception("Resistance programmed outside of [Ron, Roff] range!")
+            raise Exception("Resistance programmed outside of [Ron, Roff] range!", self.Ron, self.Roff, resistance)
 
     ###################################################################################
     # Setting properties for each device model
@@ -91,7 +91,8 @@ class memristor:
             raise Exception("Constant percentage variation has to be between 0 and 0.1!\n   Given: ", percentage_var)
         if (Ron >= Roff):
             raise Exception("Ron has to be smaller than Roff!")
-        utility.v_print_1("Setting device to ", self.type)
+        utility.v_print_1("<=================================================>")
+        utility.v_print_1("Setting type of device ", self.id, " to ", self.type)
         if (device == 'ideal'):
             # Ideal Memristor parameters
             self.Ron = Ron
@@ -126,14 +127,18 @@ class memristor:
             Roff_var = random.uniform(-percentage_var, percentage_var)
             self.Roff = as_Ω(Roff+Roff*Roff_var)
             self.Ron = as_Ω(Ron+Ron*Ron_var)
-            if self.Ron < 1@u_Ω:
-                self.Ron = 1@u_Ω
+            if self.Ron < 1@u_pΩ:
+                self.Ron = 1@u_pΩ
             # Custom variation
             self.sigma_relative = relative_sigma
             self.sigma_absolute = absolute_sigma
 
         else:
             raise Exception("Device Not Exist!")
+        self.R = self.Ron
+        self.R_range = self.Roff - self.Ron
+        utility.v_print_2(self)
+        utility.v_print_1("<=================================================>")
 
     ###################################################################################
     def add_variation(self, conductance):
