@@ -110,15 +110,36 @@ def compare(reference, modeled, delta):
 #############################################################
 
 
+def cal_average(num):
+    sum_num = 0
+    for t in num:
+        sum_num = sum_num + t
+
+    avg = sum_num / len(num)
+    return avg
+
+#############################################################
+
+
 def main():
     util = utility(0)
-    test_cases = 5
+    test_cases = 100
+    exp_times = []
+    exp_rows = []
+    exp_cols = []
+    exp_error = []
+    exp_delta = []
+    delta = 0.00001
+    flag = 0
+    f_error = None
+    f_delta = 0
     for i in range(test_cases):
         print("<========================================>")
         print("Test case: ", i)
         start_time = time.time()
-        rows = random.randint(2, 2*2048)
-        cols = random.randint(2, 200)
+        delta = delta/2
+        rows = random.randint(2,  4*2048)
+        cols = random.randint(2,  200)
         print(rows, " ", cols)
         matrix = [[random.uniform(1, 1000) for i in range(cols)] for j in range(rows)]
         # matrix = [[1, 2], [5, 3], [4, 1]]
@@ -130,11 +151,38 @@ def main():
         # print("Golden model: \n", golden_model)
         cross = crossbar_vmm(vector, matrix, 'custom')
         # print("Modeled: \n", cross)
-        compare(golden_model, cross, 0.0001)
+        try:
+            error = compare(golden_model, cross, delta)
+            exp_error.append(error)
+        except Exception as E:
+            if flag == 0:
+                f_error = E
+                f_delta = delta
+                flag = 1
+            exp_error.append(E)
+            print("ERROR:")
+            print(delta)
+            print(E)
         end_time = time.time()
         exe_time = end_time - start_time
         print("Execution time: ", exe_time)
+        exp_times.append(exe_time)
+        exp_rows.append(rows)
+        exp_cols.append(cols)
+        exp_delta.append(delta)
         print("<========================================>")
+    print(exp_rows)
+    print(exp_cols)
+    print(exp_times)
+    avg_rows = cal_average(exp_rows)
+    avg_cols = cal_average(exp_cols)
+    avg_time = cal_average(exp_times)
+    print(avg_rows)
+    print(avg_cols)
+    print(avg_time)
+    print("Error gen: ", flag)
+    print(f_error)
+    print(f_delta)
     # try:
     #    cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
     # except Exception as E:

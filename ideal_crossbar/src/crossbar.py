@@ -74,8 +74,8 @@ class crossbar:
             raise Exception("R read variations should be in range [0,1]!")
 
         if R_read == None:
-            self.R_read = [0.0000000000001@u_pΩ for x in range(cols)]
-            utility.v_print_1("R_read is not defined, 0.0000000000001pΩ value will be used!")
+            self.R_read = [0.0000000000000000000001@u_pΩ for x in range(cols)]
+            utility.v_print_1("R_read is not defined, 0.0000000000000000000001 pΩ value will be used!")
         else:  # assign values to R read including variation
             self.R_read = [(r+r*random.uniform(0, x)) for x in self.R_read_var for r in R_read]
 
