@@ -97,30 +97,6 @@ def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ, 
 #############################################################
 
 
-def compare(reference, modeled, delta):
-    # TODO compare the two results
-    error = reference - modeled
-    if any(abs(x) > delta for x in error):
-        print(reference)
-        print(modeled)
-        print(error)
-        raise Exception("Large error: \n", error)
-    return error
-
-#############################################################
-
-
-def cal_average(num):
-    sum_num = 0
-    for t in num:
-        sum_num = sum_num + t
-
-    avg = sum_num / len(num)
-    return avg
-
-#############################################################
-
-
 def main():
     util = utility(0)
     test_cases = 100
@@ -129,64 +105,49 @@ def main():
     exp_cols = []
     exp_error = []
     exp_delta = []
-    delta = 0.00001
-    flag = 0
-    f_error = None
-    f_delta = 0
+    delta = 1.0e-12
+    Ron = 1.0e6
+    Roff = 1.0e9
+    V_min = 0.0
+    V_max = 3.0
     for i in range(test_cases):
         print("<========================================>")
         print("Test case: ", i)
         start_time = time.time()
-        delta = delta/2
-        rows = random.randint(2,  4*2048)
-        cols = random.randint(2,  200)
+        rows = random.randint(100,  2048)
+        cols = random.randint(100,  200)
         print(rows, " ", cols)
-        matrix = [[random.uniform(1, 1000) for i in range(cols)] for j in range(rows)]
-        # matrix = [[1, 2], [5, 3], [4, 1]]
-        # vector = [2, 7, 3]
-        vector = [random.uniform(1, 1000) for i in range(rows)]
+        matrix = [[random.uniform(1/Ron, 1/Roff) for i in range(cols)] for j in range(rows)]
+        vector = [random.uniform(V_min, V_max) for i in range(rows)]
         print("Randomized input")
         golden_model = vmm(vector, matrix)
-        check = golden_model+0.00011
-        # print("Golden model: \n", golden_model)
-        cross = crossbar_vmm(vector, matrix, 'custom')
-        # print("Modeled: \n", cross)
+        cross = crossbar_vmm(vector, matrix, 'custom', 0, Ron, Roff)
         try:
-            error = compare(golden_model, cross, delta)
-            exp_error.append(error)
+            error = utility.compare(golden_model, cross, delta)
         except Exception as E:
-            if flag == 0:
-                f_error = E
-                f_delta = delta
-                flag = 1
-            exp_error.append(E)
             print("ERROR:")
             print(delta)
             print(E)
+            exit()
         end_time = time.time()
         exe_time = end_time - start_time
         print("Execution time: ", exe_time)
         exp_times.append(exe_time)
         exp_rows.append(rows)
         exp_cols.append(cols)
-        exp_delta.append(delta)
+        exp_error.append(max(error))
         print("<========================================>")
     print(exp_rows)
     print(exp_cols)
     print(exp_times)
-    avg_rows = cal_average(exp_rows)
-    avg_cols = cal_average(exp_cols)
-    avg_time = cal_average(exp_times)
+    avg_rows = utility.cal_average(exp_rows)
+    avg_cols = utility.cal_average(exp_cols)
+    avg_time = utility.cal_average(exp_times)
+    avg_error = utility.cal_average(exp_error)
     print(avg_rows)
     print(avg_cols)
     print(avg_time)
-    print("Error gen: ", flag)
-    print(f_error)
-    print(f_delta)
-    # try:
-    #    cross.set_sources([20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V, 20@u_V])
-    # except Exception as E:
-    #    print(E)
+    print(avg_error)
 
 
 if __name__ == "__main__":

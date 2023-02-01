@@ -47,3 +47,23 @@ class utility:
     def v_print_2(*args, **kwargs):
         if utility.verbosity >= 2:
             print(*args, **kwargs)
+
+    # calculate average of vector
+    def cal_average(num):
+        sum_num = 0
+        for t in num:
+            sum_num = sum_num + t
+
+        avg = sum_num / len(num)
+        return avg
+
+    # Compare and calculate error between values of two vectors
+    # Raise Exception if passes a delta
+    def compare(reference, modeled, delta):
+        error = reference - modeled
+        if any(abs(x) > delta for x in error):
+            print(reference)
+            print(modeled)
+            print(error)
+            raise Exception("Large error: \n", error)
+        return error
