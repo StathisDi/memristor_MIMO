@@ -36,6 +36,7 @@ from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
 import random
 import time
 from vmm import vmm
+import numpy as np
 
 #############################################################
 
@@ -96,8 +97,6 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows,
     # Roff = Roff  # 1.0e6  # in kOhm
     # V_min = V_min
     # V_max = V_max
-    var_abs = 0
-    var_rel = 0
     file_name = "test_case_r"+str(rows)+"_c_"+str(cols)
     file_path = '..\\..\\exp_data\\ideal_crossbar'
     header = ['var_abs', 'var_rel']
@@ -107,8 +106,8 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows,
     for i in range(rep):
         print("<========================================>")
         print("Test case: ", i)
-        while (var_abs <= limit):
-            while (var_rel <= limit):
+        for var_abs in np.arange(0, limit, var_abs_step):
+            for var_rel in np.arange(0, limit, var_rel_step):
                 print("<==============>")
                 print("var_abs is ", var_abs, " var_rel is ", var_rel, " limit is ", limit)
                 start_time = time.time()
@@ -117,16 +116,14 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows,
                 vector = [random.uniform(V_min, V_max) for i in range(rows)]
                 print("Randomized input")
                 golden_model = vmm.vmm(vector, matrix)
-                cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+                cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
                 error = utility.cal_error(golden_model, cross)
                 data = [str(var_abs), str(var_rel)]
                 [data.append(str(e)) for e in error]
                 utility.write_to_csv(file_path, file_name, data)
-                var_rel += var_rel_step
                 end_time = time.time()
                 exe_time = end_time - start_time
                 print("Execution time: ", exe_time)
-            var_abs += var_abs_step
 
 #############################################################
 
@@ -144,7 +141,7 @@ def main():
     start = 4
     for y in range(start, max_rows+start, 10):
         print(f'=========ROWS ({y})=========')
-        variation_tb(Ron, Roff, 0, 3, 0.0001, 0.0001, 20, y, 20, 0.2)
+        variation_tb(Ron, Roff, 0, 3, 0.0001, 0.0001, 20, y, 4, 0.2)
 
 
 if __name__ == "__main__":
