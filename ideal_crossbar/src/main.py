@@ -90,37 +90,43 @@ def verification_tb():
 #############################################################
 
 
-def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep):
-    test_cases = rep
-    exp_times = []
-    exp_rows = []
-    exp_cols = []
-    exp_error = []
-    Ron = Ron  # 1.0e3  # in kOhm
-    Roff = Roff  # 1.0e6  # in kOhm
-    V_min = V_min
-    V_max = V_max
-    for i in range(test_cases):
+def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows, cols, limit):
+    # test_cases = rep
+    # Ron = Ron  # 1.0e3  # in kOhm
+    # Roff = Roff  # 1.0e6  # in kOhm
+    # V_min = V_min
+    # V_max = V_max
+    var_abs = 0
+    var_rel = 0
+    file_name = "test_case_r"+str(rows)+"_c_"+str(cols)
+    file_path = '..\\..\\exp_data\\ideal_crossbar'
+    header = ['var_abs', 'var_rel']
+    for x in range(cols):
+        header.append(str(x))
+    utility.write_to_csv(file_path, file_name, header)
+    for i in range(rep):
         print("<========================================>")
         print("Test case: ", i)
-        start_time = time.time()
-        rows = random.randint(100,  2048)
-        cols = random.randint(100,  200)
-        print(rows, " ", cols)
-        matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-        vector = [random.uniform(V_min, V_max) for i in range(rows)]
-        print("Randomized input")
-        golden_model = vmm.vmm(vector, matrix)
-        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
-        error = utility.cal_error(golden_model, cross)
-        end_time = time.time()
-        exe_time = end_time - start_time
-        print("Execution time: ", exe_time)
-        exp_times.append(exe_time)
-        exp_rows.append(rows)
-        exp_cols.append(cols)
-        exp_error.append(max(error))
-        print("<========================================>")
+        while (var_abs <= limit):
+            while (var_rel <= limit):
+                print("<==============>")
+                print("var_abs is ", var_abs, " var_rel is ", var_rel, " limit is ", limit)
+                start_time = time.time()
+                print(rows, " ", cols)
+                matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+                vector = [random.uniform(V_min, V_max) for i in range(rows)]
+                print("Randomized input")
+                golden_model = vmm.vmm(vector, matrix)
+                cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+                error = utility.cal_error(golden_model, cross)
+                data = [str(var_abs), str(var_rel)]
+                [data.append(str(e)) for e in error]
+                utility.write_to_csv(file_path, file_name, data)
+                var_rel += var_rel_step
+                end_time = time.time()
+                exe_time = end_time - start_time
+                print("Execution time: ", exe_time)
+            var_abs += var_abs_step
 
 #############################################################
 
@@ -134,7 +140,11 @@ def main():
     sigma_absolute = 0.005490197724238527
     sigma_relative = 0.1032073708277878
     sigma_absolute = 0.005783083695110348
-    variation_tb()
+    max_rows = 1024
+    start = 4
+    for y in range(start, max_rows+start, 10):
+        print(f'=========ROWS ({y})=========')
+        variation_tb(Ron, Roff, 0, 3, 0.0001, 0.0001, 20, y, 20, 0.2)
 
 
 if __name__ == "__main__":
