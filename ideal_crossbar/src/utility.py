@@ -25,9 +25,6 @@ SOFTWARE.
 """
 
 
-import re
-
-
 # Class with utility functions
 class utility:
     verbosity = 0
@@ -62,8 +59,23 @@ class utility:
     def compare(reference, modeled, delta):
         error = reference - modeled
         if any(abs(x) > delta for x in error):
-            print(reference)
-            print(modeled)
-            print(error)
+            print("Reference:\n", reference)
+            print("Modeled: \n", modeled)
             raise Exception("Large error: \n", error)
         return error
+
+    #############################################################
+
+    def translate_input(input, scale):
+        # TODO translate a number to the resistance
+        r = input*scale
+        return r
+
+    #############################################################
+
+    def translate_output(input, scale):
+        # TODO translate current to number
+        num = input/scale
+        return num
+
+    #############################################################
