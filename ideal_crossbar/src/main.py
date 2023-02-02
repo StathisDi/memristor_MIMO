@@ -40,7 +40,7 @@ from vmm import vmm
 #############################################################
 
 
-def testbench():
+def verification_tb():
     test_cases = 10
     exp_times = []
     exp_rows = []
@@ -90,9 +90,51 @@ def testbench():
 #############################################################
 
 
+def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep):
+    test_cases = rep
+    exp_times = []
+    exp_rows = []
+    exp_cols = []
+    exp_error = []
+    Ron = Ron  # 1.0e3  # in kOhm
+    Roff = Roff  # 1.0e6  # in kOhm
+    V_min = V_min
+    V_max = V_max
+    for i in range(test_cases):
+        print("<========================================>")
+        print("Test case: ", i)
+        start_time = time.time()
+        rows = random.randint(100,  2048)
+        cols = random.randint(100,  200)
+        print(rows, " ", cols)
+        matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+        vector = [random.uniform(V_min, V_max) for i in range(rows)]
+        print("Randomized input")
+        golden_model = vmm.vmm(vector, matrix)
+        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+        error = utility.cal_error(golden_model, cross)
+        end_time = time.time()
+        exe_time = end_time - start_time
+        print("Execution time: ", exe_time)
+        exp_times.append(exe_time)
+        exp_rows.append(rows)
+        exp_cols.append(cols)
+        exp_error.append(max(error))
+        print("<========================================>")
+
+#############################################################
+
+
 def main():
     util = utility(0)
-    testbench()
+    # verification_tb()
+    Ron = 1.0e3  # in kOhm
+    Roff = 1.0e6  # in kOhm
+    sigma_relative = 0.02438171519582677
+    sigma_absolute = 0.005490197724238527
+    sigma_relative = 0.1032073708277878
+    sigma_absolute = 0.005783083695110348
+    variation_tb()
 
 
 if __name__ == "__main__":

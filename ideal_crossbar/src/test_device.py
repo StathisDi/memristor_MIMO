@@ -54,5 +54,13 @@ def main():
     print(mem)
 
 
+def test():
+    utility.write_to_csv(".\\", "test.csv", ["d1", "d2", "d3", "d4"])
+    utility.write_to_csv(".\\", "test.csv", [0, 1, 2, 3])
+    utility.write_to_csv(".\\", "test.csv", [2, 3, 4, 5])
+    utility.write_to_csv(".\\", "test.csv", [9, 8, 7, 6])
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    test()
