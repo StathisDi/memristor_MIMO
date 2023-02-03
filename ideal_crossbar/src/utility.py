@@ -110,7 +110,7 @@ class utility:
             raise Exception("Write to CSV requires parameter \"data\"!")
         if not (os.path.isdir(path_to_file)):
             raise Exception("Path given not valid!")
-        file = path_to_file+"\\"+file_name
+        file = path_to_file+"/"+file_name
         utility.v_print_2("Path given = ", file)
         with open(file, 'a', newline='') as f:
             csv_writer = csv.writer(f)
