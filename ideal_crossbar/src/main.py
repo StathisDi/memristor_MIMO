@@ -40,6 +40,7 @@ import numpy as np
 import gc
 import sys
 import argparse
+import os
 
 
 #############################################################
@@ -95,42 +96,42 @@ def verification_tb():
 #############################################################
 
 
-def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows, cols, limit_abs, limit_rel):
+def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols):
     # test_cases = rep
     # Ron = Ron  # 1.0e3  # in kOhm
     # Roff = Roff  # 1.0e6  # in kOhm
     # V_min = V_min
     # V_max = V_max
 
-    for i in range(rep):
-        print("<========================================>")
-        print("Test case: ", i)
-        file_name = "test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(i)
-        file_path = '../../exp_data/ideal_crossbar'
-        header = ['var_abs', 'var_rel']
-        for x in range(cols):
-            header.append(str(x))
+    print("<========================================>")
+    print("Test case: ", rep)
+    file_name = "test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep)+".csv"
+    file_path = '../../exp_data/ideal_crossbar'
+    header = ['var_abs', 'var_rel']
+    for x in range(cols):
+        header.append(str(x))
+    file = file_path+"/"+file_name
+    # Only write header once
+    if not(os.path.isfile(file)):
         utility.write_to_csv(file_path, file_name, header)
-        for var_abs in np.arange(0, limit_abs, var_abs_step):
-            for var_rel in np.arange(0, limit_rel, var_rel_step):
-                print("<==============>")
-                print("var_abs is ", var_abs, " var_rel is ", var_rel)
-                start_time = time.time()
-                print(rows, " ", cols)
-                matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-                vector = [random.uniform(V_min, V_max) for i in range(rows)]
-                print("Randomized input")
-                golden_model = vmm.vmm_gm(vector, matrix)
-                cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
-                error = utility.cal_error(golden_model, cross)
-                data = [str(var_abs), str(var_rel)]
-                [data.append(str(e)) for e in error]
-                utility.write_to_csv(file_path, file_name, data)
-                end_time = time.time()
-                exe_time = end_time - start_time
-                print("Execution time: ", exe_time)
-                del data
-                gc.collect()
+    print("<==============>")
+    print("var_abs is ", var_abs, " var_rel is ", var_rel)
+    start_time = time.time()
+    print(rows, " ", cols)
+    matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+    vector = [random.uniform(V_min, V_max) for i in range(rows)]
+    print("Randomized input")
+    golden_model = vmm.vmm_gm(vector, matrix)
+    cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
+    error = utility.cal_error(golden_model, cross)
+    data = [str(var_abs), str(var_rel)]
+    [data.append(str(e)) for e in error]
+    utility.write_to_csv(file_path, file_name, data)
+    end_time = time.time()
+    exe_time = end_time - start_time
+    print("Execution time: ", exe_time)
+    del data
+    gc.collect()
 
 #############################################################
 
@@ -139,9 +140,11 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("initial_rows", help="Initial number of rows.")
-    parser.add_argument("final_rows", help="Upper limit number of rows.")
-    parser.add_argument("step", help="step number of rows.")
+    parser.add_argument("rows", help="Initial number of rows.")
+    parser.add_argument("cols", help="Upper limit number of rows.")
+    parser.add_argument("rep", help="repetition.")
+    parser.add_argument("sigma_absolute", help="Set values for sigma absolute")
+    parser.add_argument("sigma_relative", help="Set values for sigma relative")
 
     args = parser.parse_args()
     return args
@@ -157,13 +160,12 @@ def main():
     sigma_absolute = 0.005490197724238527
     sigma_relative = 0.1032073708277878
     sigma_absolute = 0.005783083695110348
-    max_rows = int(args.final_rows)
-    start = int(args.initial_rows)
-    step = int(args.step)
-    for y in range(start, max_rows, step):
-        if y != 0:
-            print(f'=========ROWS ({y})=========')
-            variation_tb(Ron, Roff, 0, 3, 0.0001, 0.001, 10, y, 4, 0.008, 0.15)
+    rows = int(args.rows)
+    cols = int(args.cols)
+    rep = int(args.rep)
+    sigma_absolute = float(args.sigma_absolute)
+    sigma_relative = float(args.sigma_relative)
+    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
 
 
 if __name__ == "__main__":
