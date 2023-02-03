@@ -55,9 +55,10 @@ def main():
         for y in range(init_rows, max_rows, step_rows):
             for var_abs in np.arange(0, 0.01, 0.0001):
                 for var_rel in np.arange(0, 0.15, 0.0005):
-                    print(i, " ", y, " ", var_abs, " ", var_rel)
-                    command = 'python ./main.py ' + str(y) + ' ' + str(4) + ' ' + str(i) + ' ' + str(var_abs) + ' ' + str(var_rel)
-                    subprocess.run(command, shell=True, check=True)
+                    if y != 0:
+                        print(i, " ", y, " ", var_abs, " ", var_rel)
+                        command = 'python ./main.py ' + str(y) + ' ' + str(4) + ' ' + str(i) + ' ' + str(var_abs) + ' ' + str(var_rel)
+                        subprocess.run(command, shell=True, check=True)
 
 
 if __name__ == "__main__":
