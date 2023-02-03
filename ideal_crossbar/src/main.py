@@ -37,6 +37,7 @@ import random
 import time
 from vmm import vmm
 import numpy as np
+import gc
 
 #############################################################
 
@@ -91,7 +92,7 @@ def verification_tb():
 #############################################################
 
 
-def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows, cols, limit):
+def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows, cols, limit_abs, limit_rel):
     # test_cases = rep
     # Ron = Ron  # 1.0e3  # in kOhm
     # Roff = Roff  # 1.0e6  # in kOhm
@@ -106,16 +107,16 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows,
     for i in range(rep):
         print("<========================================>")
         print("Test case: ", i)
-        for var_abs in np.arange(0, limit, var_abs_step):
-            for var_rel in np.arange(0, limit, var_rel_step):
+        for var_abs in np.arange(0, limit_abs, var_abs_step):
+            for var_rel in np.arange(0, limit_rel, var_rel_step):
                 print("<==============>")
-                print("var_abs is ", var_abs, " var_rel is ", var_rel, " limit is ", limit)
+                print("var_abs is ", var_abs, " var_rel is ", var_rel)
                 start_time = time.time()
                 print(rows, " ", cols)
                 matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
                 vector = [random.uniform(V_min, V_max) for i in range(rows)]
                 print("Randomized input")
-                golden_model = vmm.vmm(vector, matrix)
+                golden_model = vmm.vmm_gm(vector, matrix)
                 cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
                 error = utility.cal_error(golden_model, cross)
                 data = [str(var_abs), str(var_rel)]
@@ -124,6 +125,8 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs_step, var_rel_step, rep, rows,
                 end_time = time.time()
                 exe_time = end_time - start_time
                 print("Execution time: ", exe_time)
+                del data
+                gc.collect()
 
 #############################################################
 
@@ -141,7 +144,7 @@ def main():
     start = 4
     for y in range(start, max_rows+start, 10):
         print(f'=========ROWS ({y})=========')
-        variation_tb(Ron, Roff, 0, 3, 0.0001, 0.0001, 20, y, 4, 0.2)
+        variation_tb(Ron, Roff, 0, 3, 0.0001, 0.0005, 10, y, 4, 0.008, 0.15)
 
 
 if __name__ == "__main__":

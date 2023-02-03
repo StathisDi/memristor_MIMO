@@ -26,6 +26,7 @@ SOFTWARE.
 
 import csv
 import os
+import gc
 
 # Class with utility functions
 
@@ -114,4 +115,6 @@ class utility:
         with open(file, 'a', newline='') as f:
             csv_writer = csv.writer(f)
             csv_writer.writerow(data)
+            csv_writer = None
             f.close()
+        gc.collect()

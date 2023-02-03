@@ -29,6 +29,7 @@ from utility import utility
 from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
 import numpy as np
+import gc
 
 # Class that defines the vmm functions
 
@@ -37,7 +38,7 @@ class vmm:
 
     #############################################################
 
-    def vmm(vector, matrix):
+    def vmm_gm(vector, matrix):
         vector = np.array(vector)
         matrix = np.array(matrix).transpose()
         result = np.inner(vector, matrix)
@@ -63,11 +64,15 @@ class vmm:
         utility.v_print_2("Resistances based on input matrix: \n", res)
         cross.set_sources(sources)
         cross.update_all_devices(res)
+        del res
+        del sources
         print("Sources and device state is updated")
         cross.circuit_solver()
         o_current = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
+        del cross
+        gc.collect()
         return result
 
     #############################################################
