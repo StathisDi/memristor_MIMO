@@ -4,12 +4,18 @@ Experiments and simulation setup for MIMO in memory computation using memristors
 
 # Requirements
 
+## For crossbar
+
 1) Python 3
 2) PySpice
 
 Installation instructions for python can be found [here](https://www.python.org/)!
 
 Installation instructions for PySpice can be found [here](https://pyspice.fabrice-salvaire.fr/releases/v1.4/overview.html#how-to-install-pyspice)!
+
+## For the data processing
+
+1) [Pandas](https://github.com/pandas-dev/pandas)
 
 # LICENSE
 
