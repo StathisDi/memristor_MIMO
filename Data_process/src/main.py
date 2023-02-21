@@ -33,6 +33,11 @@ import os
 
 
 def check_file_pattern(filename):
+    """ This function takes input the name of a file and checks if it fits the pattern.
+
+        Returns:
+            topple with the number of rows [0], columns [1] and experiment [2].
+    """
     filename_pattern = r'^.*(?P<row>r\d+).*(?P<column>c_\d+).*(?P<iteration>rep_\d+)\.csv.*$'
 
     match = re.match(filename_pattern, filename)
@@ -63,6 +68,7 @@ def read_arg():
         Example : \'test_r40_c_30_rep_2.csv\'."
     )
     parser.add_argument("path", help="Path to folder where the csv files are located!")
+    parser.add_argument("-m", "--max_iterations", dest="max", default="0", help="Read all files with iteration number equal or lower that this. Takes non-negative values.")
     args = parser.parse_args()
     return args
 
@@ -72,15 +78,20 @@ def main():
     path = args.path
     if not os.path.isdir(path):
         raise Exception("The path is not a directory")
+    max_i = int(args.max)
+    if max_i < 0:
+        raise Exception("Negative value given to -m parameter.")
 
     same = 0
     temp = 0
+    columns = 0
+    columns_new = 0
     for filename in os.listdir(path):
         filepath = os.path.join(path, filename)
         if os.path.isfile(filepath):
             x = check_file_pattern(filename)
-            if x:
-                print(x)
+            if x and x[2] <= max_i:
+                # print(x)
                 # check if the two files have the same number of rows
                 if x[0] == temp:
                     same = 1
@@ -88,6 +99,20 @@ def main():
                     same = 0
                     temp = x[0]
 
+                if same != 1:
+                    # new sets of experiments (different # rows)
+                    columns = 0
+                else:
+                    # continue of experiments (same # rows)
+                    columns += columns_new
+
+                columns_new = x[1]
+
+                print(f'{x} is {same} and columns start from {columns}')
+
+
+'''
+                # df = df.rename(columns={'old_column_name1': 'new_column_name1', 'old_column_name2': 'new_column_name2'})
                 if (x[0] == 1000):
                     if same == 1:
                         print("same")
@@ -99,7 +124,7 @@ def main():
                     else:
                         df = pd.read_csv(filepath)
                         print(df)
-
+'''
 
 if __name__ == "__main__":
     main()
