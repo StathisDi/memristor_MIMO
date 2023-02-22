@@ -69,62 +69,84 @@ def read_arg():
     )
     parser.add_argument("path", help="Path to folder where the csv files are located!")
     parser.add_argument("-m", "--max_iterations", dest="max", default="0", help="Read all files with iteration number equal or lower that this. Takes non-negative values.")
+    parser.add_argument("-r", "--row", dest="row", type=int, nargs='+',
+                        default=[0], help="Reads only files from experiments with a specific number of rows. It can take multiple values, if 0 then it reads all.")
     args = parser.parse_args()
-    return args
-
-
-def main():
-    args = read_arg()
     path = args.path
     if not os.path.isdir(path):
         raise Exception("The path is not a directory")
     max_i = int(args.max)
     if max_i < 0:
         raise Exception("Negative value given to -m parameter.")
+    r = args.row
+    for i in r:
+        if i < 0:
+            raise Exception("Negative value given to -r parameter.")
+    return [path, max_i, r]
 
-    same = 0
+
+def read_n_rename_cols(filename, c, c_n):
+    df = pd.read_csv(filename)
+    for i in range(0, c_n):
+        df = df.rename(columns={str(i): str(i+c)})
+    return df
+
+
+def read_all_files(path, max_i, r):
+    '''
+    Read all files inside a directory and return a dictionary 
+    '''
     temp = 0
     columns = 0
     columns_new = 0
+    merge_df = None
+    concat_df = None
+    check = True
     for filename in os.listdir(path):
         filepath = os.path.join(path, filename)
         if os.path.isfile(filepath):
             x = check_file_pattern(filename)
             if x and x[2] <= max_i:
-                # print(x)
                 # check if the two files have the same number of rows
                 if x[0] == temp:
-                    same = 1
-                else:
-                    same = 0
-                    temp = x[0]
-
-                if same != 1:
-                    # new sets of experiments (different # rows)
-                    columns = 0
-                else:
                     # continue of experiments (same # rows)
                     columns += columns_new
+                else:
+                    # new sets of experiments (different # rows)
+                    columns = 0
+                    temp = x[0]
 
                 columns_new = x[1]
+                # When specified number of rows go through the files and compile one dataframe
+                if (x[0] in r) or (0 in r):
+                    print(f'{x} columns start from {columns}')
+                    df = read_n_rename_cols(filepath, columns, columns_new)
+                    merge_df = df if x[2] == 0 else pd.merge(merge_df, df)
+                    if max_i == x[2]:
+                        merge_df = merge_df.assign(rows=x[0])
+                        concat_df = merge_df if (concat_df is None) else pd.concat([concat_df, merge_df], ignore_index=True)
+                    check = False
 
-                print(f'{x} is {same} and columns start from {columns}')
+    if check:
+        raise Exception("No files read, check --r parameter.")
+
+    return concat_df
 
 
-'''
-                # df = df.rename(columns={'old_column_name1': 'new_column_name1', 'old_column_name2': 'new_column_name2'})
-                if (x[0] == 1000):
-                    if same == 1:
-                        print("same")
-                        df1 = pd.read_csv(filepath)
-                        dfm = pd.merge(df, df1)
-                        print(df1)
-                        print("dfm")
-                        print(dfm)
-                    else:
-                        df = pd.read_csv(filepath)
-                        print(df)
-'''
+def main():
+    args = read_arg()
+    path = args[0]
+    max_i = args[1]
+    r = args[2]
+    try:
+        df = read_all_files(path, max_i, r)
+    except Exception as e:
+        print(e)
+        return (-1)
+
+    print(f'Files read!:\n {df}')
+    # Process function
+
 
 if __name__ == "__main__":
     main()
