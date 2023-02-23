@@ -133,19 +133,76 @@ def read_all_files(path, max_i, r):
     return concat_df
 
 
+# Get data columns (columns with the error values)
+def get_col_names(df):
+    names = df.columns
+    labels = []
+    for x in names:
+        if x.isdigit():
+            labels.append(x)
+    return labels
+
+# Add means column in a dataframe and remove the rest of the columns
+
+
+def add_means(cls, df):
+    print(df)
+    df['avg'] = df[cls].abs().mean(axis=1)
+    df = df.drop(columns=cls)
+    return df
+
+
+# Create 3D-plot for absolute variation avg_error for different rows (0 relative variation)
+def plot_var_abs_error(df):
+    df_abs = df.loc[df['var_rel'] == 0]
+    df_abs = df_abs.drop(columns=['var_rel'])
+    df_abs = df_abs.reset_index(drop=True)
+    labels = get_col_names(df_abs)
+    df_abs = add_means(labels, df_abs)
+    print(df_abs)
+    return ()
+
+
+# Create 3D-plot for relative variation avg_error for different rows (0 absolute variation)
+def plot_var_rel_error(df):
+
+    return ()
+
+
+# Create 3D-plot for relative and absolute variation avg error for specific rows
+def plot_var_comb_error(rows, df):
+    return ()
+
+
+# Create 2D plot for specific variation point for different rows, either avg error or box plot
+def plot_rows(abs_var, rel_var, df, box=True):
+    return ()
+
+
+# Create 2D plot for specific abs variation and row point for different rel var, either avg error or box plot
+def plot_rel_vars(rows, abs_var, df, box=True):
+    return ()
+
+
+# Create 2D plot for specific rel variation and row point for different abs var, either avg error or box plot
+def plot_abs_vars(rows, rel_var, df, box=True):
+    return ()
+
+
 def main():
     args = read_arg()
     path = args[0]
     max_i = args[1]
     r = args[2]
     try:
-        df = read_all_files(path, max_i, r)
+        exp_df = read_all_files(path, max_i, r)
     except Exception as e:
         print(e)
         return (-1)
 
-    print(f'Files read!:\n {df}')
+    print(f'Files read!:\n {exp_df}')
     # Process function
+    plot_var_abs_error(exp_df)
 
 
 if __name__ == "__main__":
