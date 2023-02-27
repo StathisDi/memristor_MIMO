@@ -134,6 +134,10 @@ class crossbar:
         print(self.I_outputs)
 
     ###################################################################################
+    # Ideal crossbar sim without use of spice (for quicker experiments)
+    # TODO
+
+    ###################################################################################
     # Set source values.
     def set_sources(self, v):
         self.sources_values = v
