@@ -42,8 +42,16 @@ from utility import utility
 class crossbar:
 
     ###################################################################################
-    # Constructor
-    def __init__(self, name="", rows=0, cols=0, R_read=None, R_read_var=None):
+    def __init__(self, name="", rows=0, cols=0, R_read=None, R_read_var=None, spice=False):
+        '''
+        Constructor
+        Inputs:
+          - name (string)
+          - rows, cols: dimensions of the crossbar (integer)
+          - R_read: read resistance (Float)
+          - R_read_var: variations in the read resistance (Float < 1)
+          - spice: Boolean value that specifies if spice simulation will run. If False R_read and _var are ignored (default False)
+        '''
         utility.v_print_1("Creating crossbar!\n")
         self.name = name
         self.rows = rows
@@ -62,6 +70,7 @@ class crossbar:
         self.currents = []
         self.voltages = []
         self.read_node_str = [str(x)+"_grd" for x in range(cols)]
+        self.spice = spice
         utility.v_print_2("Read_nodes: \n", self.read_node_str, "\n")
 
         if R_read_var == None:
@@ -82,28 +91,39 @@ class crossbar:
         utility.v_print_1("\n\nInitialization of the crossbar setup completed!\n\n")
 
     ###################################################################################
-    # to text function
     def __str__(self):
-        return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}"
+        return f"{self.name}: rows:{self.rows}, cols:{self.cols}, elements:{self.elements}, spice:{self.spice}"
 
     ###################################################################################
-    # update the type of all devices in the crossbar
     def update_device_type(self, device='ideal', percentage_var=0,  Ron=1@u_kΩ, Roff=1000@u_kΩ, relative_sigma=0, absolute_sigma=0):
+        '''
+        Update the type of all devices in the crossbar
+
+        Inputs:
+          - device='ideal': device type (string: 'ideal', 'ferro', 'MF/SI', 'custom')
+          - percentage_var=0 : percent device to device variation (float <1)
+          - Ron=1@u_kΩ, Roff=1000@u_kΩ : Ron and Roff values (u_Ω spice unit)
+          - relative_sigma=0, absolute_sigma=0 : Write/Read variation (float <1)
+        '''
         for r in self.devices:
             for i in r:
                 i.set_device_type(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)
 
     ###################################################################################
-    # Print the coordinates of each device
     def print_device_coordinates(self):
+        '''
+        Print the coordinates of all devices in the crossbar
+        '''
         for y in range(self.rows):
             for x in range(self.cols):
                 print(self.devices[y][x].coordinates, "=", self.device[y][x].resistance, end=" ")
             print("")
 
     ###################################################################################
-    # Detail print of the netlist, sources and resistances
     def print_netlist(self):
+        '''
+        Detail print of the netlist, sources and resistances
+        '''
         if self.netlist_created == 1:
             for y in range(self.rows):
                 print(self.sources[y], end=" --> ")
@@ -117,8 +137,10 @@ class crossbar:
             raise Exception("Netlist has not been created!")
 
     ###################################################################################
-    # Detail print
     def detail_print(self):
+        '''
+        Print all info about the class
+        '''
         print(self.name, ":")
         print("\t Rows: ", self.rows)
         print("\t Columns: ", self.cols)
@@ -132,14 +154,22 @@ class crossbar:
         print(self.sources_values)
         print("\t Current output:")
         print(self.I_outputs)
+        print(f"Spice flag {self.spice}")
 
     ###################################################################################
-    # Ideal crossbar sim without use of spice (for quicker experiments)
-    # TODO
+    def fast_sim(self):
+        '''
+        Run a fast simulation (without spice) of the crossbar, it only implements the vector matrix multiplication
+        '''
+        return ()
 
     ###################################################################################
-    # Set source values.
     def set_sources(self, v):
+        '''
+        Set values for all the sources in the crossbar
+        Input:
+          - v: Vector with the values of each source, has to be the same height as the rows
+        '''
         self.sources_values = v
         if (self.sources.__len__() != v.__len__()):
             raise Exception("Input vector of sources, not equal size as the number of sources!")
@@ -152,8 +182,10 @@ class crossbar:
             utility.v_print_1("Source values are updated, waiting to create netlist!")
 
     ###################################################################################
-    # Print the circuit sources
     def print_sources(self):
+        '''
+        Print the circuit sources
+        '''
         if self.netlist_created == 1:
             print("Defined sources in the circuit: ", self.circuit.title)
             for source in self.sources:
@@ -162,8 +194,10 @@ class crossbar:
             print("There is no netlist created!")
 
     ###################################################################################
-    # Get current values per branch
     def get_current(self):
+        '''
+        Get current values per branch
+        '''
         # The first row currents are from the sources (negative), the rest are from the resistors
         # The name conventions (i.e. str format) is Branch vr0_plus for resistors and v9 for sources
         self.I_outputs = [i[0] for i in self.currents if re.match(r"vr", i._name)]
@@ -172,22 +206,17 @@ class crossbar:
         utility.v_print_1(self.I_outputs)
         # TODO return on the double?
         return self.I_outputs
-        # self.I_outputs = [0@u_A for x in range(self.cols)]  # Zero out currents
-        # for i in self.currents:
-        #    print("Name: ", str(i), " Value: ", float(i))]
-        #    if re.match(r"vr", i._name):  # only consider the branches with resistors
-        #        id = int(re.findall(r"\d{1,}", i._name)[0])  # Get the id of the resistor
-        #        for x in range(self.cols):
-        #            if (id % self.cols) == x:
-        #                utility.v_print_2("id: ", id, " x is: ", x)
-        #                self.I_outputs[x] += i[0]
-        #            # sum = sum + i[0]  # Sum over the resistor currents
 
     ###################################################################################
-    # Update device
-    # Updates the internal state of a device in node [y,x] with a given resistance.
-    # It updates the memristor element and the spice netlist
     def update_device(self, x, y, target_resistance):
+        '''
+        Updates the internal state of a device in node [y,x] with a given resistance.
+        It updates the memristor element and the spice netlist
+
+        Inputs:
+          - x,y : coordinates
+          - Resistance to be programmed
+        '''
         utility.v_print_1("Updating device resistance. Device: [", y, ",", x, "]")
         if not ((0 <= y < self.rows) and (0 <= x <= self.cols)):
             raise Exception("Try to access device with out of bounds coordinates.\nGiven coordinates: [" +
@@ -203,8 +232,13 @@ class crossbar:
             utility.v_print_1("Resistance values are updated, waiting to create netlist!")
 
     ###################################################################################
-    # Updated all devices
     def update_all_devices(self, resistance_matrix):
+        '''
+        Updated all devices
+
+        Inputs:
+          - Matrix the size of the crossbar with the target resistance values
+        '''
         # resistance_matrix.__len__() --> # rows
         # resistance_matrix[0].__len__() --> # columns
         if (resistance_matrix.__len__() != self.rows):
@@ -218,8 +252,10 @@ class crossbar:
         [self.update_device(x, y, resistance_matrix[y][x]) for x in range(self.cols) for y in range(self.rows)]
 
     ###################################################################################
-    # Create the crossbar netlist
     def create_netlist(self):
+        '''
+        Create the crossbar netlist
+        '''
         # Set flag that the netlist has been created
         self.netlist_created = 1
         self.logger = Logging.setup_logging()
@@ -260,8 +296,10 @@ class crossbar:
         #    i.plus.add_current_probe(self.circuit)
 
     ###################################################################################
-    # Calculate branch current and node voltages (DC static analysis)
     def circuit_solver(self):
+        '''
+        Run the spice simulation and calculate branch current and node voltages (DC static analysis)
+        '''
         if self.netlist_created == 1:
 
             simulator = self.circuit.simulator(temperature=25, nominal_temperature=25)
