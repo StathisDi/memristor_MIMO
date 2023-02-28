@@ -63,6 +63,9 @@ class memristor:
 
     ###################################################################################
     def update_state(self, resistance):
+        '''
+        Program the device to the appropriate value
+        '''
         if self.Ron <= resistance <= self.Roff:
             # self.R = resistance
             utility.v_print_2("Target resistance is: ", u_kΩ(resistance))
@@ -134,7 +137,7 @@ class memristor:
             self.sigma_absolute = absolute_sigma
 
         else:
-            raise Exception("Device Not Exist!")
+            raise Exception("Device type does not Exist!")
         self.R = self.Ron
         self.R_range = self.Roff - self.Ron
         utility.v_print_2(self)
@@ -142,6 +145,9 @@ class memristor:
 
     ###################################################################################
     def add_variation(self, conductance):
+        '''
+        Add variations to the conductance of the device
+        '''
         Gon = as_S(1/self.Ron)
         Goff = as_S(1/self.Roff)
         if (self.type == 'ideal'):

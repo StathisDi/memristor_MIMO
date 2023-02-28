@@ -39,6 +39,9 @@ class vmm:
     #############################################################
 
     def vmm_gm(vector, matrix):
+        '''
+        Basic matrix vector multiplication
+        '''
         vector = np.array(vector)
         matrix = np.array(matrix).transpose()
         result = np.inner(vector, matrix)
@@ -47,7 +50,10 @@ class vmm:
 
     #############################################################
 
-    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
+    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, spice=False):
+        '''
+        Run the memristor simulation for the vector matrix multiplication
+        '''
         result = 0
         rows = len(matrix)
         cols = len(matrix[0])
@@ -64,14 +70,11 @@ class vmm:
         utility.v_print_2("Resistances based on input matrix: \n", res)
         cross.set_sources(sources)
         cross.update_all_devices(res)
-        del res
-        del sources
         print("Sources and device state is updated")
         cross.circuit_solver()
         o_current = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
-        del cross
         gc.collect()
         return result
 

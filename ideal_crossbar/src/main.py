@@ -41,6 +41,7 @@ import gc
 import sys
 import argparse
 import os
+from crossbar import crossbar
 
 
 #############################################################
@@ -112,7 +113,7 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols):
         header.append(str(x))
     file = file_path+"/"+file_name
     # Only write header once
-    if not(os.path.isfile(file)):
+    if not (os.path.isfile(file)):
         utility.write_to_csv(file_path, file_name, header)
     print("<==============>")
     print("var_abs is ", var_abs, " var_rel is ", var_rel)
@@ -163,9 +164,25 @@ def main():
     rows = int(args.rows)
     cols = int(args.cols)
     rep = int(args.rep)
-    sigma_absolute = float(args.sigma_absolute)
-    sigma_relative = float(args.sigma_relative)
-    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    # sigma_absolute = float(args.sigma_absolute)
+    # sigma_relative = float(args.sigma_relative)
+    # variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+    vector = [random.uniform(0, 3) for i in range(rows)]
+    utility.v_print_1("rows: ", rows, " cols: ", cols)
+    cross = crossbar("Test crossbar", rows, cols)
+    cross.update_device_type('custom', 0,  Ron*1.0e3, Roff*1.0e3, sigma_relative, sigma_absolute)
+    cross.create_netlist()
+    print("Created netlist")
+    sources = [u_V(vector[y]) for y in range(rows)]
+    res = [[] for y in range(rows)]
+    for y in range(rows):
+        res[y] = [u_Ω(utility.translate_input(1/matrix[y][x], 1.0)) for x in range(cols)]
+    utility.v_print_2("Sources based on input vector: \n", sources)
+    utility.v_print_2("Resistances based on input matrix: \n", res)
+    cross.set_sources(sources)
+    cross.update_all_devices(res)
+    cross.fast_sim()
 
 
 if __name__ == "__main__":

@@ -30,6 +30,7 @@ from PySpice.Spice.Netlist import Circuit
 from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_MΩ, u_pΩ
 from memristor import memristor
+import numpy as np
 import random
 import re
 from utility import utility
@@ -160,8 +161,22 @@ class crossbar:
     def fast_sim(self):
         '''
         Run a fast simulation (without spice) of the crossbar, it only implements the vector matrix multiplication
+
+        The function is implemented as a vector matrix multiplication between the sources and the conductance values
+        of the devices in the crossbar
         '''
-        return ()
+        # print([float(self.sources[y].dc_value) for y in range(self.rows)])
+        vector = [float(i.dc_value) for i in self.sources]
+        print(vector)
+        matrix = [[float(self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
+        for y in range(self.rows):
+            print(matrix[y])
+        print(vector)
+        vector = np.array(vector)
+        matrix = np.array(matrix).transpose()
+        result = np.inner(vector, matrix)
+        utility.v_print_1("Fast mem model: \n", result)
+        return result
 
     ###################################################################################
     def set_sources(self, v):
@@ -204,7 +219,6 @@ class crossbar:
         [utility.v_print_2("Name: ", str(i), " Value: ", float(i)) for i in self.currents]
         utility.v_print_1("Calculated outputs:")
         utility.v_print_1(self.I_outputs)
-        # TODO return on the double?
         return self.I_outputs
 
     ###################################################################################
