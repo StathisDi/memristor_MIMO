@@ -34,105 +34,11 @@ from utility import utility
 from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
 import random
-import time
 from vmm import vmm
-import numpy as np
-import gc
-import sys
 import argparse
-import os
 from crossbar import crossbar
+from testbenches import *
 
-
-#############################################################
-
-
-def verification_tb():
-    test_cases = 10
-    exp_times = []
-    exp_rows = []
-    exp_cols = []
-    exp_error = []
-    delta = 1.0e-12
-    Ron = 1.0e3  # in kOhm
-    Roff = 1.0e6  # in kOhm
-    V_min = 0.0
-    V_max = 3.0
-    for i in range(test_cases):
-        print("<========================================>")
-        print("Test case: ", i)
-        start_time = time.time()
-        rows = random.randint(100,  2048)
-        cols = random.randint(100,  200)
-        print(rows, " ", cols)
-        matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-        vector = [random.uniform(V_min, V_max) for i in range(rows)]
-        print("Randomized input")
-        golden_model = vmm.vmm_gm(vector, matrix)
-        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
-        try:
-            error = utility.compare(golden_model, cross, delta)
-        except Exception as E:
-            print("ERROR:")
-            print("delta:", delta)
-            print(E)
-            exit()
-        end_time = time.time()
-        exe_time = end_time - start_time
-        print("Execution time: ", exe_time)
-        exp_times.append(exe_time)
-        exp_rows.append(rows)
-        exp_cols.append(cols)
-        exp_error.append(max(error))
-        print("<========================================>")
-    avg_rows = utility.cal_average(exp_rows)
-    avg_cols = utility.cal_average(exp_cols)
-    avg_time = utility.cal_average(exp_times)
-    avg_error = utility.cal_average(exp_error)
-    print(avg_rows)
-    print(avg_cols)
-    print(avg_time)
-    print(avg_error)
-
-#############################################################
-
-
-def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols):
-    # test_cases = rep
-    # Ron = Ron  # 1.0e3  # in kOhm
-    # Roff = Roff  # 1.0e6  # in kOhm
-    # V_min = V_min
-    # V_max = V_max
-
-    print("<========================================>")
-    print("Test case: ", rep)
-    file_name = "test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep)+".csv"
-    file_path = '../../exp_data/ideal_crossbar'
-    header = ['var_abs', 'var_rel']
-    for x in range(cols):
-        header.append(str(x))
-    file = file_path+"/"+file_name
-    # Only write header once
-    if not (os.path.isfile(file)):
-        utility.write_to_csv(file_path, file_name, header)
-    print("<==============>")
-    print("var_abs is ", var_abs, " var_rel is ", var_rel)
-    start_time = time.time()
-    print(rows, " ", cols)
-    matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-    vector = [random.uniform(V_min, V_max) for i in range(rows)]
-    print("Randomized input")
-    golden_model = vmm.vmm_gm(vector, matrix)
-    cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
-    error = utility.cal_error(golden_model, cross)
-    data = [str(var_abs), str(var_rel)]
-    [data.append(str(e)) for e in error]
-    utility.write_to_csv(file_path, file_name, data)
-    end_time = time.time()
-    exe_time = end_time - start_time
-    print("Execution time: ", exe_time)
-    del data
-    gc.collect()
 
 #############################################################
 
@@ -166,23 +72,23 @@ def main():
     rep = int(args.rep)
     # sigma_absolute = float(args.sigma_absolute)
     # sigma_relative = float(args.sigma_relative)
-    # variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
-    matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-    vector = [random.uniform(0, 3) for i in range(rows)]
-    utility.v_print_1("rows: ", rows, " cols: ", cols)
-    cross = crossbar("Test crossbar", rows, cols)
-    cross.update_device_type('custom', 0,  Ron*1.0e3, Roff*1.0e3, sigma_relative, sigma_absolute)
-    cross.create_netlist()
-    print("Created netlist")
-    sources = [u_V(vector[y]) for y in range(rows)]
-    res = [[] for y in range(rows)]
-    for y in range(rows):
-        res[y] = [u_Ω(utility.translate_input(1/matrix[y][x], 1.0)) for x in range(cols)]
-    utility.v_print_2("Sources based on input vector: \n", sources)
-    utility.v_print_2("Resistances based on input matrix: \n", res)
-    cross.set_sources(sources)
-    cross.update_all_devices(res)
-    cross.fast_sim()
+    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    # matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+    # vector = [random.uniform(0, 3) for i in range(rows)]
+    # utility.v_print_1("rows: ", rows, " cols: ", cols)
+    # cross = crossbar("Test crossbar", rows, cols)
+    # cross.update_device_type('custom', 0,  Ron*1.0e3, Roff*1.0e3, sigma_relative, sigma_absolute)
+    # cross.create_netlist()
+    # print("Created netlist")
+    # sources = [u_V(vector[y]) for y in range(rows)]
+    # res = [[] for y in range(rows)]
+    # for y in range(rows):
+    #     res[y] = [u_Ω(utility.translate_input(1/matrix[y][x], 1.0)) for x in range(cols)]
+    # utility.v_print_2("Sources based on input vector: \n", sources)
+    # utility.v_print_2("Resistances based on input matrix: \n", res)
+    # cross.set_sources(sources)
+    # cross.update_all_devices(res)
+    # print(cross.fast_sim())
 
 
 if __name__ == "__main__":

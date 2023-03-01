@@ -28,14 +28,14 @@ from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_MΩ, u_pΩ, u_S, as_Ω, as_S
 from utility import utility
 import random
-import pint
+# import pint
 
 
 # 1 Class for the device (memristor):
 #   Has: State, solver, and other device properties, input is the voltage
 class memristor:
     devices = 0
-    u = pint.UnitRegistry()
+    # u = pint.UnitRegistry()
 
     ###################################################################################
     def __init__(self, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0):

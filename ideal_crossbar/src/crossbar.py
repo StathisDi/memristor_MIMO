@@ -165,17 +165,19 @@ class crossbar:
         The function is implemented as a vector matrix multiplication between the sources and the conductance values
         of the devices in the crossbar
         '''
-        # print([float(self.sources[y].dc_value) for y in range(self.rows)])
-        vector = [float(i.dc_value) for i in self.sources]
-        print(vector)
-        matrix = [[float(self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
-        for y in range(self.rows):
-            print(matrix[y])
-        print(vector)
-        vector = np.array(vector)
-        matrix = np.array(matrix).transpose()
-        result = np.inner(vector, matrix)
-        utility.v_print_1("Fast mem model: \n", result)
+        if self.netlist_created == 1:
+            vector = [float(i.dc_value) for i in self.sources]
+            print(vector)
+            matrix = [[float(self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
+            for y in range(self.rows):
+                print(matrix[y])
+            vector = np.array(vector)
+            matrix = np.array(matrix).transpose()
+            result = np.inner(vector, matrix)
+            utility.v_print_1("Fast mem model: \n", result)
+        else:
+            raise Exception("ERROR [fast_sim ", self.name, " ]! There is no defined netlist!")
+
         return result
 
     ###################################################################################
