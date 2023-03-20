@@ -47,11 +47,12 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("rows", help="Initial number of rows.")
-    parser.add_argument("cols", help="Upper limit number of rows.")
-    parser.add_argument("rep", help="repetition.")
-    parser.add_argument("sigma_absolute", help="Set values for sigma absolute")
-    parser.add_argument("sigma_relative", help="Set values for sigma relative")
+    parser.add_argument("rows", help="Initial number of rows.", type=int)
+    parser.add_argument("cols", help="Upper limit number of rows.", type=int)
+    parser.add_argument("rep", help="repetition.", type=int)
+    parser.add_argument("sigma_absolute", help="Set values for sigma absolute", type=float)
+    parser.add_argument("sigma_relative", help="Set values for sigma relative", type=float)
+    parser.add_argument("type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int)
 
     args = parser.parse_args()
     return args
@@ -70,9 +71,17 @@ def main():
     rows = int(args.rows)
     cols = int(args.cols)
     rep = int(args.rep)
-    # sigma_absolute = float(args.sigma_absolute)
-    # sigma_relative = float(args.sigma_relative)
-    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    type = int(args.type)
+    if type not in [0, 1, 2]:
+        raise Exception(f"Type can only take values between 0 to 2.\nValue given: {type}")
+    sigma_absolute = float(args.sigma_absolute)
+    sigma_relative = float(args.sigma_relative)
+    if type == 0:
+        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    elif type == 1:
+        verification_tb(False)
+    else:
+        verification_tb(True)
 
 
 if __name__ == "__main__":

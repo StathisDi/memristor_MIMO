@@ -41,7 +41,7 @@ from crossbar import crossbar
 #############################################################
 
 
-def verification_tb():
+def verification_tb(fast=False):
     test_cases = 10
     exp_times = []
     exp_rows = []
@@ -63,7 +63,12 @@ def verification_tb():
         vector = [random.uniform(V_min, V_max) for i in range(rows)]
         print("Randomized input")
         golden_model = vmm.vmm_gm(vector, matrix)
-        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+
+        if fast:
+            cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+        else:
+            cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+
         try:
             error = utility.compare(golden_model, cross, delta)
         except Exception as E:

@@ -58,7 +58,7 @@ class vmm:
         rows = len(matrix)
         cols = len(matrix[0])
         utility.v_print_1("rows: ", rows, " cols: ", cols)
-        cross = crossbar("Test crossbar", rows, cols)
+        cross = crossbar("Test crossbar", rows, cols, True)
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
         cross.create_netlist()
         print("Created netlist")
@@ -71,7 +71,7 @@ class vmm:
         cross.set_sources(sources)
         cross.update_all_devices(res)
         print("Sources and device state is updated")
-        cross.circuit_solver()
+        cross.sim()
         o_current = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
@@ -79,3 +79,31 @@ class vmm:
         return result
 
     #############################################################
+
+    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, spice=False):
+        '''
+        Run the memristor simulation for the vector matrix multiplication
+        '''
+        result = 0
+        rows = len(matrix)
+        cols = len(matrix[0])
+        utility.v_print_1("rows: ", rows, " cols: ", cols)
+        cross = crossbar("Test crossbar fast", rows, cols, False)
+        cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
+        cross.create_netlist()
+        print("Created netlist")
+        sources = [u_V(vector[y]) for y in range(rows)]
+        res = [[] for y in range(rows)]
+        for y in range(rows):
+            res[y] = [u_Ω(utility.translate_input(1/matrix[y][x], 1.0)) for x in range(cols)]
+        utility.v_print_2("Sources based on input vector: \n", sources)
+        utility.v_print_2("Resistances based on input matrix: \n", res)
+        cross.set_sources(sources)
+        cross.update_all_devices(res)
+        print("Sources and device state is updated")
+        cross.sim()
+        o_current = cross.get_current()
+        utility.v_print_1("Read currents: \n", o_current)
+        result = [utility.translate_output(float(i), 1.0) for i in o_current]
+        gc.collect()
+        return result

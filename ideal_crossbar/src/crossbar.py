@@ -43,7 +43,7 @@ from utility import utility
 class crossbar:
 
     ###################################################################################
-    def __init__(self, name="", rows=0, cols=0, R_read=None, R_read_var=None, spice=False):
+    def __init__(self, name="", rows=0, cols=0, spice=False, R_read=None, R_read_var=None):
         '''
         Constructor
         Inputs:
@@ -173,10 +173,11 @@ class crossbar:
         '''
         if self.netlist_created == 1 and self.spice == False:
             vector = [float(i.dc_value) for i in self.sources]
-            print(vector)
+            print("Fast sim!")
+            # print(vector)
             matrix = [[float(self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
-            for y in range(self.rows):
-                print(matrix[y])
+            # for y in range(self.rows):
+            #    print(matrix[y])
             vector = np.array(vector)
             matrix = np.array(matrix).transpose()
             result = np.inner(vector, matrix)
@@ -330,6 +331,7 @@ class crossbar:
         '''
         Run the spice simulation and calculate branch current and node voltages (DC static analysis)
         '''
+        print("Spice Sim!")
         if (self.netlist_created == 1) and (self.spice):
 
             simulator = self.circuit.simulator(temperature=25, nominal_temperature=25)
