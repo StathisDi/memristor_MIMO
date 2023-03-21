@@ -79,9 +79,9 @@ def main():
     if type == 0:
         variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
     elif type == 1:
-        verification_tb(False)
+        verification_tb(False, rep)
     else:
-        verification_tb(True)
+        verification_tb(True, rep)
 
 
 if __name__ == "__main__":

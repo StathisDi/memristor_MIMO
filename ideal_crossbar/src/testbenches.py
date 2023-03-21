@@ -41,8 +41,7 @@ from crossbar import crossbar
 #############################################################
 
 
-def verification_tb(fast=False):
-    test_cases = 10
+def verification_tb(fast=False, test_cases=2):
     exp_times = []
     exp_rows = []
     exp_cols = []
@@ -56,15 +55,16 @@ def verification_tb(fast=False):
         print("<========================================>")
         print("Test case: ", i)
         start_time = time.time()
-        rows = random.randint(100,  2048)
-        cols = random.randint(100,  200)
+        rows = random.randint(2,  2000)
+        cols = random.randint(2,  200)
         print(rows, " ", cols)
         matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
         vector = [random.uniform(V_min, V_max) for i in range(rows)]
         print("Randomized input")
         golden_model = vmm.vmm_gm(vector, matrix)
-
+        print("Start Sim")
         if fast:
+            print("Fast")
             cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
         else:
             cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
@@ -96,7 +96,7 @@ def verification_tb(fast=False):
 #############################################################
 
 
-def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols):
+def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols, spice=False):
     # test_cases = rep
     # Ron = Ron  # 1.0e3  # in kOhm
     # Roff = Roff  # 1.0e6  # in kOhm
@@ -122,7 +122,10 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols):
     vector = [random.uniform(V_min, V_max) for i in range(rows)]
     print("Randomized input")
     golden_model = vmm.vmm_gm(vector, matrix)
-    cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
+    if spice:
+        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
+    else:
+        cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
     error = utility.cal_error(golden_model, cross)
     data = [str(var_abs), str(var_rel)]
     [data.append(str(e)) for e in error]

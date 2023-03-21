@@ -50,7 +50,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, spice=False):
+    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
@@ -71,8 +71,8 @@ class vmm:
         cross.set_sources(sources)
         cross.update_all_devices(res)
         print("Sources and device state is updated")
-        cross.sim()
-        o_current = cross.get_current()
+        o_current = cross.sim()
+        # = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
         gc.collect()
@@ -80,7 +80,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, spice=False):
+    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
@@ -88,8 +88,11 @@ class vmm:
         rows = len(matrix)
         cols = len(matrix[0])
         utility.v_print_1("rows: ", rows, " cols: ", cols)
+        print("Create class")
         cross = crossbar("Test crossbar fast", rows, cols, False)
+        print("Update device")
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
+        print("Create netlist")
         cross.create_netlist()
         print("Created netlist")
         sources = [u_V(vector[y]) for y in range(rows)]
@@ -98,11 +101,13 @@ class vmm:
             res[y] = [u_Ω(utility.translate_input(1/matrix[y][x], 1.0)) for x in range(cols)]
         utility.v_print_2("Sources based on input vector: \n", sources)
         utility.v_print_2("Resistances based on input matrix: \n", res)
+        print("Set sources")
         cross.set_sources(sources)
+        print("Update devices")
         cross.update_all_devices(res)
         print("Sources and device state is updated")
-        cross.sim()
-        o_current = cross.get_current()
+        o_current = cross.sim()
+        # o_current = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
         gc.collect()

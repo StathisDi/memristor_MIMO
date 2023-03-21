@@ -172,12 +172,9 @@ class crossbar:
         of the devices in the crossbar
         '''
         if self.netlist_created == 1 and self.spice == False:
-            vector = [float(i.dc_value) for i in self.sources]
             print("Fast sim!")
-            # print(vector)
-            matrix = [[float(self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
-            # for y in range(self.rows):
-            #    print(matrix[y])
+            vector = [float(i.dc_value) for i in self.sources]
+            matrix = [[float(1/self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
             vector = np.array(vector)
             matrix = np.array(matrix).transpose()
             result = np.inner(vector, matrix)
@@ -353,5 +350,6 @@ class crossbar:
         '''
         if self.spice:
             self.circuit_solver()
+            return self.get_current()
         else:
-            self.fast_sim()
+            return self.fast_sim()
