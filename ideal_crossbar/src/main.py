@@ -47,12 +47,15 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("rows", help="Initial number of rows.", type=int)
-    parser.add_argument("cols", help="Upper limit number of rows.", type=int)
-    parser.add_argument("rep", help="repetition.", type=int)
-    parser.add_argument("sigma_absolute", help="Set values for sigma absolute", type=float)
-    parser.add_argument("sigma_relative", help="Set values for sigma relative", type=float)
-    parser.add_argument("type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int)
+    parser.add_argument("-r", "--rows", help="Initial number of rows.", type=int, default=10)
+    parser.add_argument("-u", "--rows_up", help="Upper limit number of rows.", type=int, default=100)
+    parser.add_argument("-s", "--row_step", help="Step number of rows.", type=int, default=250)
+    parser.add_argument("-c", "--cols", help="Step number of rows.", type=int, default=750)
+    parser.add_argument("-p", "--rep", help="repetitions.", type=int, default=10)
+    parser.add_argument("-m", "--mul_add", help="", action='store_true')
+    parser.add_argument("-a", "--sigma_absolute", help="Set values for sigma absolute", type=float, default=0.0)
+    parser.add_argument("-e", "--sigma_relative", help="Set values for sigma relative", type=float, default=0.0)
+    parser.add_argument("-t", "--type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int, choices=[0, 1, 2])
 
     args = parser.parse_args()
     return args
@@ -72,8 +75,6 @@ def main():
     cols = int(args.cols)
     rep = int(args.rep)
     type = int(args.type)
-    if type not in [0, 1, 2]:
-        raise Exception(f"Type can only take values between 0 to 2.\nValue given: {type}")
     sigma_absolute = float(args.sigma_absolute)
     sigma_relative = float(args.sigma_relative)
     if type == 0:

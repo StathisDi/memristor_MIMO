@@ -56,7 +56,7 @@ def verification_tb(fast=False, test_cases=2):
         print("Test case: ", i)
         start_time = time.time()
         rows = random.randint(2,  2000)
-        cols = random.randint(2,  200)
+        cols = random.randint(2,  2000)
         print(rows, " ", cols)
         matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
         vector = [random.uniform(V_min, V_max) for i in range(rows)]
