@@ -1,0 +1,23 @@
+{
+  "Ron": 1.0e3,
+  "Roff": 1.0e6,
+  "cols": 750,
+  "rep": 10,
+  "rows": {
+    "start": 10,
+    "inc": 250,
+    "lim": 500
+  },
+  "sigma_absolute": {
+    "start": 0.01,
+    "inc": 0.1,
+    "lim": 1,
+    "mul": false
+  },
+  "sigma_relative": {
+    "start": 0.01,
+    "inc": 0.1,
+    "lim": 1,
+    "mul": false
+  }
+}

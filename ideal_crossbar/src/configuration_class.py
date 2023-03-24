@@ -2,7 +2,7 @@
 
 #
 # Author : Dimitrios Stathis
-# Copyright 2022
+# Copyright 2023
 #
 #
 # This program is free software: you can redistribute it and/or modify
@@ -18,12 +18,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-# Configuration class that is used in the compilation.py
+# Configuration class gets a json file as input
 
 import json
 
 
 class configuration:
+
+    def read_loop_attribute(self, name, var_names, default_values):
+        if name in self.config_data:
+            if len(var_names) == len(default_values):
+                list = []
+                for var in var_names:
+                    list.append(self.config_data[name][var])
+                return list
+            else:
+                raise Exception(f"ERROR (configuration-json) Length of var_names and default values does not match!")
+        else:
+            print(f'No \'{name}\' has been defined in the configuration file.\nDefault values {default_values} is set.')
+            return default_values
+
     def read_attribute(self, var_name, default_value):
         if var_name in self.config_data:
             return self.config_data.get(var_name)
@@ -37,12 +51,14 @@ class configuration:
         with open(self.file_path, "r") as config_file:
             self.config_data = json.load(config_file)
             config_file.close
-
-        self.rows = self.read_attribute("rows", 10)
-        self.rows_inc = self.read_attribute("rows_inc", 250)
-        self.rows_lim = self.read_attribute("rows_lim", 500)
+        self.Ron = self.read_attribute("Ron", 1.0e3)
+        self.Roff = self.read_attribute("Roff", 1.0e6)
+        loop_attributes = ["start", "inc", "lim"]
+        default_values = [10, 250, 500]
+        self.rows = self.read_loop_attribute("rows", loop_attributes, default_values)
         self.cols = self.read_attribute("cols", 750)
         self.rep = self.read_attribute("rep", 10)
-        self.sigma_absolute = self.read_attribute("sigma_absolute", 0.0)
-        self.sigma_relative = self.read_attribute("sigma_relative", 0.0)
-        self.relative_increment = self.read_attribute("relative_increment", 0.1)
+        loop_attributes = ["start", "inc", "lim", "mul"]
+        default_values = [0.001, 0.1, 1, False]
+        self.sigma_absolute = self.read_loop_attribute("sigma_absolute", loop_attributes, default_values)
+        self.sigma_relative = self.read_loop_attribute("sigma_relative", loop_attributes, default_values)

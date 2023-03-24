@@ -38,7 +38,7 @@ from vmm import vmm
 import argparse
 from crossbar import crossbar
 from testbenches import *
-
+from configuration_class import configuration
 
 #############################################################
 
@@ -47,8 +47,8 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("-m", "--mul_add", help="Multiplicative or additive increment off variations.", action='store_true')
-    parser.add_argument("-t", "--type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int, choices=[0, 1, 2])
+    parser.add_argument("-c", "--config_file", help="Configuration file", type=str, required=True)
+    parser.add_argument("-t", "--type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int, choices=[0, 1, 2], required=True)
 
     args = parser.parse_args()
     return args
@@ -57,25 +57,30 @@ def read_arg():
 def main():
     util = utility(0)
     args = read_arg()
-    # verification_tb()
-    Ron = 1.0e3  # in kOhm
-    Roff = 1.0e6  # in kOhm
-    sigma_relative = 0.02438171519582677
-    sigma_absolute = 0.005490197724238527
-    sigma_relative = 0.1032073708277878
-    sigma_absolute = 0.005783083695110348
-    rows = int(args.rows)
-    cols = int(args.cols)
-    rep = int(args.rep)
+    config_file = args.config_file
     type = int(args.type)
-    sigma_absolute = float(args.sigma_absolute)
-    sigma_relative = float(args.sigma_relative)
-    if type == 0:
-        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
-    elif type == 1:
-        verification_tb(False, rep)
-    else:
-        verification_tb(True, rep)
+    config = configuration(config_file)
+    Ron = config.Ron
+    Roff = config.Roff
+    sigma_relative = config.sigma_relative
+    sigma_absolute = config.sigma_absolute
+    rows = config.rows
+    cols = config.cols
+    rep = config.rep
+    del config
+    print(f"Type is {type}")
+    print(f"Ron is {Ron}")
+    print(f"Roff is {Roff}")
+    print(f"sigma abs is {sigma_absolute}")
+    print(f"sigma rel is {sigma_relative}")
+    print(f"rows is {rows}")
+    print(f"rep is {rep}")
+    # if type == 0:
+    #    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    # elif type == 1:
+    #    verification_tb(False, rep)
+    # else:
+    #    verification_tb(True, rep)
 
 
 if __name__ == "__main__":
