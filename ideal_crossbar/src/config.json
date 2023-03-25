@@ -19,5 +19,10 @@
     "inc": 0.1,
     "lim": 1,
     "mul": false
+  },
+  "logging": {
+    "path": "./",
+    "variations": true,
+    "conductance": true
   }
 }

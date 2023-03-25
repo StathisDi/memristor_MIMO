@@ -48,6 +48,7 @@ def read_arg():
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
     parser.add_argument("-c", "--config_file", help="Configuration file", type=str, required=True)
+    parser.add_argument("-v", "--verbose", help="Verbose level, 0-none, 1-level 1, 2-level 2", type=int, choices=[0, 1, 2], default=0)
     parser.add_argument("-t", "--type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int, choices=[0, 1, 2], required=True)
 
     args = parser.parse_args()
@@ -55,10 +56,11 @@ def read_arg():
 
 
 def main():
-    util = utility(0)
     args = read_arg()
     config_file = args.config_file
+    ver_lvl = args.verbose
     type = int(args.type)
+    util = utility(ver_lvl)
     config = configuration(config_file)
     Ron = config.Ron
     Roff = config.Roff
@@ -67,20 +69,24 @@ def main():
     rows = config.rows
     cols = config.cols
     rep = config.rep
+    logs = config.logs
     del config
-    print(f"Type is {type}")
-    print(f"Ron is {Ron}")
-    print(f"Roff is {Roff}")
-    print(f"sigma abs is {sigma_absolute}")
-    print(f"sigma rel is {sigma_relative}")
-    print(f"rows is {rows}")
-    print(f"rep is {rep}")
-    # if type == 0:
-    #    variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
-    # elif type == 1:
-    #    verification_tb(False, rep)
-    # else:
-    #    verification_tb(True, rep)
+    utility.v_print_2(f"Type is {type}")
+    utility.v_print_2(f"Ron is {Ron}")
+    utility.v_print_2(f"Roff is {Roff}")
+    utility.v_print_2(f"sigma abs is {sigma_absolute}")
+    utility.v_print_2(f"sigma rel is {sigma_relative}")
+    utility.v_print_2(f"rows is {rows}")
+    utility.v_print_2(f"cols are {cols}")
+    utility.v_print_2(f"rep is {rep}")
+    utility.v_print_2(f"logs are {logs}")
+    if type == 0:
+        utility.v_print_1("Variation experiment")
+        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+    elif type == 1:
+        verification_tb(False, rep)
+    else:
+        verification_tb(True, rep)
 
 
 if __name__ == "__main__":
