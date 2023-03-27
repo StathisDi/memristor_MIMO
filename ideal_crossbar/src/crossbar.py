@@ -43,7 +43,7 @@ from utility import utility
 class crossbar:
 
     ###################################################################################
-    def __init__(self, name="", rows=0, cols=0, spice=False, R_read=None, R_read_var=None):
+    def __init__(self, name="", rows=0, cols=0, spice=False, R_read=None, R_read_var=None, logs=[None, False, False, None]):
         '''
         Constructor
         Inputs:
@@ -52,6 +52,7 @@ class crossbar:
           - R_read: read resistance (Float)
           - R_read_var: variations in the read resistance (Float < 1)
           - spice: Boolean value that specifies if spice simulation will run. If False R_read and _var are ignored (default False)
+          - logs: Array of system path and 2 boolean values (Default [None, False, False])
         '''
         utility.v_print_1("Creating crossbar!\n")
         self.name = name

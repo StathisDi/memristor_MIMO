@@ -38,9 +38,26 @@ import time
 from vmm import vmm
 import os
 from crossbar import crossbar
+import numpy as np
+
+
 #############################################################
+def update_sigma(sigma, start, inc, mul):
+    '''
+    Update sigma value for loop
+    Inputs:
+    sigma -> current value of sigma [float]
+    start -> starting value of sigma (first iter) [float]
+    inc   -> increment or multiplicand value (depending on mul) [float]
+    mul   -> multiplication or addition [bool]
+    Returns: next value of sigma [float]
+    '''
+    ret = sigma*inc if mul else sigma+inc
+    ret = start if sigma == 0 else ret
+    return ret
 
 
+#############################################################
 def verification_tb(fast=False, test_cases=2):
     exp_times = []
     exp_rows = []
@@ -93,20 +110,38 @@ def verification_tb(fast=False, test_cases=2):
     print(avg_time)
     print(avg_error)
 
+
 #############################################################
-
-
-def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols, spice=False):
+def variation_tb(Ron, Roff, V_min, V_max, sigma_rel, sigma_abs, rep, rows, cols, logs, spice=False):
     # test_cases = rep
     # Ron = Ron  # 1.0e3  # in kOhm
     # Roff = Roff  # 1.0e6  # in kOhm
     # V_min = V_min
     # V_max = V_max
+    # Fields in relative and absolute sigma ["start" - float, "inc" - float, "lim" - float, "mul" -  bool]
+    # for 0 -> start -> start (+ or * depending on mul) incr -> up to lim
+    # Fields in rows ["start" - int, "inc" - int, "lim" - int]
+    # for start -> 0 + inc -> inc + inc -> up to lim
+    # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
+    for _rep in range(0, rep):
+        for r in range(0, rows[2], rows[1]):
+            _row = rows[0] if r == 0 else r
+            _sigma_rel = 0
+            while _sigma_rel <= sigma_rel[2]:
+                _sigma_abs = 0
+                while _sigma_abs <= sigma_abs[2]:
+                    utility.v_print_2(f"<===========>\nRep: {_rep} \nRows: {_row} \nCols: {cols} \nSigma rel: {_sigma_rel} \nSigma abs: {_sigma_abs}")
+                    run_sim(Ron, Roff, V_min, V_max, _sigma_rel, _sigma_abs, _rep, _row, cols, logs, spice)
+                    _sigma_abs = update_sigma(_sigma_abs, sigma_abs[0], sigma_abs[1], sigma_abs[3])
+                _sigma_rel = update_sigma(_sigma_rel, sigma_rel[0], sigma_rel[1], sigma_rel[3])
 
+
+#############################################################
+def run_sim(Ron, Roff, V_min, V_max, var_rel, var_abs, rep, rows, cols, logs=[None, False, False], spice=False):
     print("<========================================>")
     print("Test case: ", rep)
     file_name = "test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep)+".csv"
-    file_path = '../../exp_data/ideal_crossbar'
+    file_path = logs[0]
     header = ['var_abs', 'var_rel']
     for x in range(cols):
         header.append(str(x))
@@ -122,10 +157,11 @@ def variation_tb(Ron, Roff, V_min, V_max, var_abs, var_rel, rep, rows, cols, spi
     vector = [random.uniform(V_min, V_max) for i in range(rows)]
     print("Randomized input")
     golden_model = vmm.vmm_gm(vector, matrix)
+    logs.append("test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep))
     if spice:
-        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
+        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs, logs)
     else:
-        cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs)
+        cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs, logs)
     error = utility.cal_error(golden_model, cross)
     data = [str(var_abs), str(var_rel)]
     [data.append(str(e)) for e in error]

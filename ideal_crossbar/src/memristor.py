@@ -38,13 +38,16 @@ class memristor:
     # u = pint.UnitRegistry()
 
     ###################################################################################
-    def __init__(self, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0):
+    def __init__(self, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Memristor device can be configured to:
-        device: 'ideal', 'ferro', 'MF/SI', 'custom'
-        percentage_var: 0 to 0.1
-        Ron/Roff: Positive values of u_Ω, Ron has to be smaller than Roff
-        sigma, relative/absolute: small values (lower than 1) sigma variation for the random distribution
+          - device: 'ideal', 'ferro', 'MF/SI', 'custom'
+          - percentage_var: 0 to 0.1
+          - Ron/Roff: Positive values of u_Ω, Ron has to be smaller than Roff
+          - sigma, relative/absolute: small values (lower than 1) sigma variation for the random distribution
+          - logs: array of a string (system path), different files will be kept for each device),
+                  two boolean values, and an additional string with the the initial part of the file name (Default [None, False, False, None]).
+                  The boolean values define if logs will be created for variations and conductance
         '''
         self.id = memristor.devices
         if (rows != -1 or cols != -1):
@@ -55,6 +58,19 @@ class memristor:
         self.set_device_type(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)
         self.R = self.Ron
         self.R_range = self.Roff - self.Ron
+        self.keep_variations = logs[1]
+        self.keep_conductance = logs[2]
+        self.file_path = logs[0]
+        self.file_path_var = logs[3]+"_"+str(self.id)+"_"+str(self.coordinates[1])+"_var.csv" if logs[1] else ""
+        self.file_path_cod = logs[3]+"_"+str(self.id)+"_"+str(self.coordinates[1])+"_cod.csv" if logs[2] else ""
+        if logs[1]:
+            if logs[3] == None or logs[0] == None:
+                raise Exception("no path given")
+            utility.write_to_csv("absolute", "relative")
+        if logs[2]:
+            if logs[3] == None or logs[0] == None:
+                raise Exception("no path given")
+            utility.write_to_csv("target", "programmed", "error")
         memristor.devices += 1
 
     ###################################################################################
@@ -71,6 +87,9 @@ class memristor:
             utility.v_print_2("Target resistance is: ", u_kΩ(resistance))
             target_conductance = as_S(1/resistance)
             self.R = as_Ω(self.add_variation(target_conductance))
+            if self.keep_conductance:
+                data = [float(resistance), float(self.R), (float(resistance)-float(self.R))]
+                utility.write_to_csv(self.file_path_cod, data)
         else:
             raise Exception("Resistance programmed outside of [Ron, Roff] range!", self.Ron, self.Roff, resistance)
 
@@ -164,7 +183,9 @@ class memristor:
             v_relative = random.gauss(0, self.sigma_relative)
             v_absolute = random.gauss(0, self.sigma_absolute)
             utility.v_print_2("v_relative: ", v_relative, " v_absolute: ", v_absolute)
-
+            if self.keep_variations:
+                data = [v_absolute, v_relative]
+                utility.write_to_csv(self.file_path_var, data)
             # non ideal 5 change
             x_nonideal = x + x * v_relative + v_absolute
             utility.v_print_2("x_nonideal is: ", x_nonideal)

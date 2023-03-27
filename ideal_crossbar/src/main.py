@@ -49,7 +49,8 @@ def read_arg():
     )
     parser.add_argument("-c", "--config_file", help="Configuration file", type=str, required=True)
     parser.add_argument("-v", "--verbose", help="Verbose level, 0-none, 1-level 1, 2-level 2", type=int, choices=[0, 1, 2], default=0)
-    parser.add_argument("-t", "--type", help="Experiment type, 0-variation, 1-spice sim verification, 2-fast sim verification", type=int, choices=[0, 1, 2], required=True)
+    parser.add_argument("-t", "--type", help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
+                        type=int, choices=[0, 1, 2, 3], required=True)
 
     args = parser.parse_args()
     return args
@@ -64,28 +65,38 @@ def main():
     config = configuration(config_file)
     Ron = config.Ron
     Roff = config.Roff
+    # Fields in relative and absolute sigma ["start" - float, "inc" - float, "lim" - float, "mul" -  bool]
+    # for 0 -> start -> start (+ or * depending on mul) incr -> up to lim
     sigma_relative = config.sigma_relative
     sigma_absolute = config.sigma_absolute
+    # Fields in rows ["start" - int, "inc" - int, "lim" - int]
+    # for start -> 0 + inc -> inc + inc -> up to lim
     rows = config.rows
     cols = config.cols
     rep = config.rep
+    # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
     logs = config.logs
     del config
     utility.v_print_2(f"Type is {type}")
     utility.v_print_2(f"Ron is {Ron}")
     utility.v_print_2(f"Roff is {Roff}")
-    utility.v_print_2(f"sigma abs is {sigma_absolute}")
-    utility.v_print_2(f"sigma rel is {sigma_relative}")
-    utility.v_print_2(f"rows is {rows}")
-    utility.v_print_2(f"cols are {cols}")
-    utility.v_print_2(f"rep is {rep}")
-    utility.v_print_2(f"logs are {logs}")
+    utility.v_print_2(f"Sigma abs is {sigma_absolute}")
+    utility.v_print_2(f"Sigma rel is {sigma_relative}")
+    utility.v_print_2(f"Rows is {rows}")
+    utility.v_print_2(f"Cols are {cols}")
+    utility.v_print_2(f"Rep is {rep}")
+    utility.v_print_2(f"Logs are {logs}")
     if type == 0:
-        utility.v_print_1("Variation experiment")
-        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols)
+        utility.v_print_1(f"Variation experiment - spice")
+        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols, logs, True)
     elif type == 1:
+        utility.v_print_1(f'Variation experiment - Fast sim')
+        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols, logs, False)
+    elif type == 2:
+        utility.v_print_1(f"Verification process for the spice sim")
         verification_tb(False, rep)
-    else:
+    elif type == 3:
+        utility.v_print_1(f"Verification process for the fast sim")
         verification_tb(True, rep)
 
 

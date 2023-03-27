@@ -118,3 +118,8 @@ class utility:
             csv_writer = None
             f.close()
         gc.collect()
+
+    #############################################################
+
+    def __str__(self):
+        return (f"This is a utility class")
