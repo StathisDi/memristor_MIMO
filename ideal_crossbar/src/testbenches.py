@@ -52,6 +52,8 @@ def update_sigma(sigma, start, inc, mul):
     mul   -> multiplication or addition [bool]
     Returns: next value of sigma [float]
     '''
+    if start == 0.0:
+        start = inc
     ret = sigma*inc if mul else sigma+inc
     ret = start if sigma == 0 else ret
     return ret
@@ -123,6 +125,7 @@ def variation_tb(Ron, Roff, V_min, V_max, sigma_rel, sigma_abs, rep, rows, cols,
     # Fields in rows ["start" - int, "inc" - int, "lim" - int]
     # for start -> 0 + inc -> inc + inc -> up to lim
     # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
+    # TODO Re-arange the loop with rep in the inner and move the cross construction outside the rep loop
     for _rep in range(0, rep):
         for r in range(0, rows[2], rows[1]):
             _row = rows[0] if r == 0 else r

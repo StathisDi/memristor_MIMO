@@ -33,6 +33,7 @@ SOFTWARE.
 from utility import utility
 from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
+import pathlib
 import random
 from vmm import vmm
 import argparse
@@ -47,7 +48,7 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("-c", "--config_file", help="Configuration file", type=str, required=True)
+    parser.add_argument("-c", "--config_file", help="Configuration file", type=pathlib.Path, required=True)
     parser.add_argument("-v", "--verbose", help="Verbose level, 0-none, 1-level 1, 2-level 2", type=int, choices=[0, 1, 2], default=0)
     parser.add_argument("-t", "--type", help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
                         type=int, choices=[0, 1, 2, 3], required=True)

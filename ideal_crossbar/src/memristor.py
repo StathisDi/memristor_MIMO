@@ -34,11 +34,11 @@ import random
 # 1 Class for the device (memristor):
 #   Has: State, solver, and other device properties, input is the voltage
 class memristor:
-    devices = 0
+    # devices = 0
     # u = pint.UnitRegistry()
 
     ###################################################################################
-    def __init__(self, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def __init__(self, _id=-1, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Memristor device can be configured to:
           - device: 'ideal', 'ferro', 'MF/SI', 'custom'
@@ -49,7 +49,11 @@ class memristor:
                   two boolean values, and an additional string with the the initial part of the file name (Default [None, False, False, None]).
                   The boolean values define if logs will be created for variations and conductance
         '''
-        self.id = memristor.devices
+        print(logs)
+        if _id != -1:
+            self.id = _id
+        else:
+            raise Exception("Id has to be a positive integer number")
         if (rows != -1 or cols != -1):
             self.coordinates = (self.id//cols, self.id % cols)
         else:
@@ -61,17 +65,19 @@ class memristor:
         self.keep_variations = logs[1]
         self.keep_conductance = logs[2]
         self.file_path = logs[0]
-        self.file_path_var = logs[3]+"_"+str(self.id)+"_"+str(self.coordinates[1])+"_var.csv" if logs[1] else ""
-        self.file_path_cod = logs[3]+"_"+str(self.id)+"_"+str(self.coordinates[1])+"_cod.csv" if logs[2] else ""
+        self.file_path_var = "var_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[1] else ""
+        self.file_path_cod = "cod_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[2] else ""
+        print(self.id)
         if logs[1]:
             if logs[3] == None or logs[0] == None:
                 raise Exception("no path given")
-            utility.write_to_csv("absolute", "relative")
+            data = ["absolute", "relative"]
+            utility.write_to_csv(self.file_path, self.file_path_var, data)
         if logs[2]:
             if logs[3] == None or logs[0] == None:
                 raise Exception("no path given")
-            utility.write_to_csv("target", "programmed", "error")
-        memristor.devices += 1
+            data = ["target", "programmed", "error"]
+            utility.write_to_csv(self.file_path, self.file_path_cod, data)
 
     ###################################################################################
     def __str__(self):
@@ -89,7 +95,7 @@ class memristor:
             self.R = as_Ω(self.add_variation(target_conductance))
             if self.keep_conductance:
                 data = [float(resistance), float(self.R), (float(resistance)-float(self.R))]
-                utility.write_to_csv(self.file_path_cod, data)
+                utility.write_to_csv(self.file_path, self.file_path_cod, data)
         else:
             raise Exception("Resistance programmed outside of [Ron, Roff] range!", self.Ron, self.Roff, resistance)
 
@@ -113,8 +119,8 @@ class memristor:
             raise Exception("Constant percentage variation has to be between 0 and 0.1!\n   Given: ", percentage_var)
         if (Ron >= Roff):
             raise Exception("Ron has to be smaller than Roff!")
-        utility.v_print_1("<=================================================>")
-        utility.v_print_1("Setting type of device ", self.id, " to ", self.type)
+        utility.v_print_2("<=================================================>")
+        utility.v_print_2("Setting type of device ", self.id, " to ", self.type)
         if (device == 'ideal'):
             # Ideal Memristor parameters
             self.Ron = Ron
@@ -160,7 +166,7 @@ class memristor:
         self.R = self.Ron
         self.R_range = self.Roff - self.Ron
         utility.v_print_2(self)
-        utility.v_print_1("<=================================================>")
+        utility.v_print_2("<=================================================>")
 
     ###################################################################################
     def add_variation(self, conductance):
@@ -171,10 +177,10 @@ class memristor:
         Goff = as_S(1/self.Roff)
         if (self.type == 'ideal'):
             # Ideal device without variations
-            utility.v_print_1("Update rule \'ideal\'")
+            utility.v_print_2("Update rule \'ideal\'")
             return (1/conductance)
         else:
-            utility.v_print_1("Update rule \'variations\'")
+            utility.v_print_2("Update rule \'variations\'")
             # Map conductance to x
             x = (conductance - Goff) / (Gon - Goff)  # target percent of change from off state
             utility.v_print_2("Target conductance: ", conductance, " is mapped to ", x)
@@ -185,7 +191,7 @@ class memristor:
             utility.v_print_2("v_relative: ", v_relative, " v_absolute: ", v_absolute)
             if self.keep_variations:
                 data = [v_absolute, v_relative]
-                utility.write_to_csv(self.file_path_var, data)
+                utility.write_to_csv(self.file_path, self.file_path_var, data)
             # non ideal 5 change
             x_nonideal = x + x * v_relative + v_absolute
             utility.v_print_2("x_nonideal is: ", x_nonideal)

@@ -43,7 +43,7 @@ from utility import utility
 class crossbar:
 
     ###################################################################################
-    def __init__(self, name="", rows=0, cols=0, spice=False, R_read=None, R_read_var=None, logs=[None, False, False, None]):
+    def __init__(self, name="", rows=0, cols=0, spice=False, logs=[None, False, False, None], R_read=None, R_read_var=None):
         '''
         Constructor
         Inputs:
@@ -63,7 +63,9 @@ class crossbar:
         self.elements = rows*cols
         self.spice = spice
         # Devices
-        self.devices = [[memristor(rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ) for x in range(cols)] for y in range(rows)]
+        self.devices = [[memristor(((cols*y)+x), rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ, 0.0, 0.0, logs) for x in range(cols)] for y in range(rows)]
+        # self.devices = [[print((cols*y)+x) for x in range(cols)] for y in range(rows)]
+        print("Devices")
         self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         # Input
         self.sources_values = [1@u_V for y in range(rows)]
@@ -240,7 +242,7 @@ class crossbar:
           - x,y : coordinates
           - Resistance to be programmed
         '''
-        utility.v_print_1("Updating device resistance. Device: [", y, ",", x, "]")
+        utility.v_print_2("Updating device resistance. Device: [", y, ",", x, "]")
         if not ((0 <= y < self.rows) and (0 <= x <= self.cols)):
             raise Exception(f"Try to access device with out of bounds coordinates.\nGiven coordinates: \
                             [{str(y)},{str(x)}]. Valid coordinate range y: [0,{str(self.rows-1)}] range of x: [0,{str(self.cols-1)}]")
@@ -250,9 +252,9 @@ class crossbar:
         if self.netlist_created == 1:
             if self.spice:
                 self.res[index].resistance = self.devices[y][x].R
-            utility.v_print_1("Resistances in netlist is updated!")
+            utility.v_print_2("Resistances in netlist is updated!")
         else:
-            utility.v_print_1("Resistance values are updated, waiting to create netlist!")
+            utility.v_print_2("Resistance values are updated, waiting to create netlist!")
 
     ###################################################################################
     def update_all_devices(self, resistance_matrix):
@@ -299,7 +301,7 @@ class crossbar:
                     id = self.devices[y][x].id
                     resistance = self.devices[y][x].R
                     self.circuit.R(id, y+1, self.read_node_str[x], resistance)
-            utility.v_print_1(self.circuit)
+            utility.v_print_2(self.circuit)
 
             for x in range(self.cols):
                 self.circuit.R("_read_"+str(x), self.read_node_str[x], self.circuit.gnd, self.R_read[x])

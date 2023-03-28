@@ -50,7 +50,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False]):
+    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
@@ -58,7 +58,7 @@ class vmm:
         rows = len(matrix)
         cols = len(matrix[0])
         utility.v_print_1("rows: ", rows, " cols: ", cols)
-        cross = crossbar("Test crossbar", rows, cols, True)
+        cross = crossbar("Test crossbar", rows, cols, True, logs)
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
         cross.create_netlist()
         print("Created netlist")
@@ -80,7 +80,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False]):
+    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
@@ -89,7 +89,7 @@ class vmm:
         cols = len(matrix[0])
         utility.v_print_1("rows: ", rows, " cols: ", cols)
         print("Create class")
-        cross = crossbar("Test crossbar fast", rows, cols, False)
+        cross = crossbar("Test crossbar fast", rows, cols, False, logs)
         print("Update device")
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
         print("Create netlist")
@@ -110,5 +110,4 @@ class vmm:
         # o_current = cross.get_current()
         utility.v_print_1("Read currents: \n", o_current)
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
-        gc.collect()
         return result
