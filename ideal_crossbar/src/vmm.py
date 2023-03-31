@@ -50,15 +50,15 @@ class vmm:
 
     #############################################################
 
-    def crossbar_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def crossbar_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
         result = 0
         rows = len(matrix)
         cols = len(matrix[0])
-        utility.v_print_1("rows: ", rows, " cols: ", cols)
-        cross = crossbar("Test crossbar", rows, cols, True, logs)
+        # utility.v_print_1("rows: ", rows, " cols: ", cols)
+        # cross = crossbar("Test crossbar", rows, cols, True, logs)
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
         cross.create_netlist()
         print("Created netlist")
@@ -80,16 +80,16 @@ class vmm:
 
     #############################################################
 
-    def crossbar_fast_vmm(vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def crossbar_fast_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
         result = 0
         rows = len(matrix)
         cols = len(matrix[0])
-        utility.v_print_1("rows: ", rows, " cols: ", cols)
-        print("Create class")
-        cross = crossbar("Test crossbar fast", rows, cols, False, logs)
+        # utility.v_print_1("rows: ", rows, " cols: ", cols)
+        # print("Create class")
+        # cross = crossbar("Test crossbar fast", rows, cols, False, logs)
         print("Update device")
         cross.update_device_type(type, percentage_var,  Ron, Roff, relative_sigma, absolute_sigma)
         print("Create netlist")

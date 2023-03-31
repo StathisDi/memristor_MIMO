@@ -2,7 +2,7 @@
   "Ron": 1.0e3,
   "Roff": 1.0e6,
   "cols": 5,
-  "rep": 1,
+  "rep": 10,
   "rows": {
     "start": 5,
     "inc": 250,
@@ -11,13 +11,13 @@
   "sigma_absolute": {
     "start": 0.01,
     "inc": 10,
-    "lim": 10,
+    "lim": 0.0,
     "mul": true
   },
   "sigma_relative": {
     "start": 0.0,
     "inc": 0.01,
-    "lim": 0.01,
+    "lim": 0.0,
     "mul": false
   },
   "logging": {

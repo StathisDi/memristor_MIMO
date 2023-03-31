@@ -49,7 +49,6 @@ class memristor:
                   two boolean values, and an additional string with the the initial part of the file name (Default [None, False, False, None]).
                   The boolean values define if logs will be created for variations and conductance
         '''
-        print(logs)
         if _id != -1:
             self.id = _id
         else:
@@ -67,7 +66,6 @@ class memristor:
         self.file_path = logs[0]
         self.file_path_var = "var_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[1] else ""
         self.file_path_cod = "cod_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[2] else ""
-        print(self.id)
         if logs[1]:
             if logs[3] == None or logs[0] == None:
                 raise Exception("no path given")

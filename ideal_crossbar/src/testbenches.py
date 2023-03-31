@@ -114,62 +114,69 @@ def verification_tb(fast=False, test_cases=2):
 
 
 #############################################################
-def variation_tb(Ron, Roff, V_min, V_max, sigma_rel, sigma_abs, rep, rows, cols, logs, spice=False):
-    # test_cases = rep
+def variation_tb(_Ron, _Roff, _V_min, _V_max, _sigma_rel, _sigma_abs, _rep, _rows, _cols, _logs, _spice=False):
+    """
+    Function that implement iterative experiments in a memristor crossbar.
+    It iterates over several size of crossbars (# of rows) and sigmas for absolute and relative variations.
+    The results of the vmm using the crossbar is compared with the mathematical implementation.
+    """
     # Ron = Ron  # 1.0e3  # in kOhm
     # Roff = Roff  # 1.0e6  # in kOhm
-    # V_min = V_min
-    # V_max = V_max
     # Fields in relative and absolute sigma ["start" - float, "inc" - float, "lim" - float, "mul" -  bool]
     # for 0 -> start -> start (+ or * depending on mul) incr -> up to lim
     # Fields in rows ["start" - int, "inc" - int, "lim" - int]
     # for start -> 0 + inc -> inc + inc -> up to lim
     # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
-    # TODO Re-arange the loop with rep in the inner and move the cross construction outside the rep loop
-    for _rep in range(0, rep):
-        for r in range(0, rows[2], rows[1]):
-            _row = rows[0] if r == 0 else r
-            _sigma_rel = 0
-            while _sigma_rel <= sigma_rel[2]:
-                _sigma_abs = 0
-                while _sigma_abs <= sigma_abs[2]:
-                    utility.v_print_2(f"<===========>\nRep: {_rep} \nRows: {_row} \nCols: {cols} \nSigma rel: {_sigma_rel} \nSigma abs: {_sigma_abs}")
-                    run_sim(Ron, Roff, V_min, V_max, _sigma_rel, _sigma_abs, _rep, _row, cols, logs, spice)
-                    _sigma_abs = update_sigma(_sigma_abs, sigma_abs[0], sigma_abs[1], sigma_abs[3])
-                _sigma_rel = update_sigma(_sigma_rel, sigma_rel[0], sigma_rel[1], sigma_rel[3])
+    cols = _cols
+    for r in range(0, _rows[2], _rows[1]):
+        row = _rows[0] if r == 0 else r
+        sigma_rel = 0
+        while sigma_rel <= _sigma_rel[2]:
+            sigma_abs = 0
+            while sigma_abs <= _sigma_abs[2]:
+                utility.v_print_1(f"rows: {row}, cols: {cols}, spice: {_spice}")
+                file_name = str(f"test_case_r_{row}_c_{cols}_abs_{sigma_abs}_rel_{sigma_rel}")
+                logs = _logs + [file_name]
+                utility.v_print_2(f"logs {logs}")
+                print("Create class")
+                cross = crossbar("Test crossbar fast", row, cols, _spice, logs)
+                for rep in range(0, _rep):
+                    utility.v_print_2(f"<===========>\nRep: {rep} \nRows: {row} \nCols: {cols} \nSigma rel: {sigma_rel} \nSigma abs: {sigma_abs}")
+                    run_sim(cross, _Ron, _Roff, _V_min, _V_max, sigma_rel, sigma_abs, rep, row, cols, logs, _spice)
+                del cross
+                sigma_abs = update_sigma(sigma_abs, _sigma_abs[0], _sigma_abs[1], _sigma_abs[3])
+            sigma_rel = update_sigma(sigma_rel, _sigma_rel[0], _sigma_rel[1], _sigma_rel[3])
 
 
 #############################################################
-def run_sim(Ron, Roff, V_min, V_max, var_rel, var_abs, rep, rows, cols, logs=[None, False, False], spice=False):
+def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs=[None, False, False], _spice=False):
     print("<========================================>")
-    print("Test case: ", rep)
-    file_name = "test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep)+".csv"
-    file_path = logs[0]
+    print("Test case: ", _rep)
+    file_name = "test_case_r"+str(_rows)+"_c_"+str(_cols)+"_rep_"+str(_rep)+".csv"
+    file_path = _logs[0]
     header = ['var_abs', 'var_rel']
-    for x in range(cols):
+    for x in range(_cols):
         header.append(str(x))
     file = file_path+"/"+file_name
     # Only write header once
     if not (os.path.isfile(file)):
         utility.write_to_csv(file_path, file_name, header)
     print("<==============>")
-    print("var_abs is ", var_abs, " var_rel is ", var_rel)
+    print("var_abs is ", _var_abs, " var_rel is ", _var_rel)
     start_time = time.time()
-    print(rows, " ", cols)
-    matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
-    vector = [random.uniform(V_min, V_max) for i in range(rows)]
+    print(_rows, " ", _cols)
+    matrix = [[random.uniform(1/(_Ron*1.0e3), 1/(_Roff*1.0e3)) for i in range(_cols)] for j in range(_rows)]
+    vector = [random.uniform(_V_min, _V_max) for i in range(_rows)]
     print("Randomized input")
     golden_model = vmm.vmm_gm(vector, matrix)
-    logs.append("test_case_r"+str(rows)+"_c_"+str(cols)+"_rep_"+str(rep))
-    if spice:
-        cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs, logs)
+    if _spice:
+        cross = vmm.crossbar_vmm(_crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
     else:
-        cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3, var_rel, var_abs, logs)
+        cross = vmm.crossbar_fast_vmm(_crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
     error = utility.cal_error(golden_model, cross)
-    data = [str(var_abs), str(var_rel)]
+    data = [str(_var_abs), str(_var_rel)]
     [data.append(str(e)) for e in error]
     utility.write_to_csv(file_path, file_name, data)
     end_time = time.time()
     exe_time = end_time - start_time
     print("Execution time: ", exe_time)
-    del data
