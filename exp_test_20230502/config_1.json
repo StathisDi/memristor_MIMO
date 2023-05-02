@@ -1,0 +1,28 @@
+{
+  "Ron": 1.0e3,
+  "Roff": 1.0e6,
+  "cols": 250,
+  "rep": 2,
+  "rows": {
+    "start": 10,
+    "inc": 250,
+    "lim": 10
+  },
+  "sigma_absolute": {
+    "start": 1.0,
+    "inc": 1.0,
+    "lim": 1.0,
+    "mul": false
+  },
+  "sigma_relative": {
+    "start": 0.0,
+    "inc": 1.0,
+    "lim": 1.0,
+    "mul": false
+  },
+  "logging": {
+    "path": "F:/Users/Dimitris/Documents/Git/memristor_MIMO/exp_test_20230502/run_1/",
+    "variations": false,
+    "conductance": false
+  }
+}
