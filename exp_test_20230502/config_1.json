@@ -2,7 +2,7 @@
   "Ron": 1.0e3,
   "Roff": 1.0e6,
   "cols": 250,
-  "rep": 2,
+  "rep": 100,
   "rows": {
     "start": 10,
     "inc": 250,
@@ -21,8 +21,8 @@
     "mul": false
   },
   "logging": {
-    "path": "F:/Users/Dimitris/Documents/Git/memristor_MIMO/exp_test_20230502/run_1/",
-    "variations": false,
-    "conductance": false
+    "path": "./run_1/",
+    "variations": true,
+    "conductance": true
   }
 }
