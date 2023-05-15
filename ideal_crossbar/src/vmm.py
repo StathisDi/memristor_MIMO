@@ -29,6 +29,7 @@ from utility import utility
 from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
 import numpy as np
+import cupy as cp
 import gc
 
 # Class that defines the vmm functions
@@ -42,9 +43,14 @@ class vmm:
         '''
         Basic matrix vector multiplication
         '''
-        vector = np.array(vector)
-        matrix = np.array(matrix).transpose()
-        result = np.inner(vector, matrix)
+        if utility.gpu:
+            vector = cp.array(vector)
+            matrix = cp.array(matrix).transpose()
+            result = cp.inner(vector, matrix)
+        else:
+            vector = np.array(vector)
+            matrix = np.array(matrix).transpose()
+            result = np.inner(vector, matrix)
         utility.v_print_1("vmm reference model: \n", result)
         return result
 

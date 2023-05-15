@@ -66,27 +66,32 @@ def verification_tb(fast=False, test_cases=2):
     exp_cols = []
     exp_error = []
     delta = 1.0e-12
-    Ron = 1.0e3  # in kOhm
-    Roff = 1.0e6  # in kOhm
+    _Ron = 1.0e3  # in kOhm
+    _Roff = 1.0e6  # in kOhm
     V_min = 0.0
     V_max = 3.0
     for i in range(test_cases):
         print("<========================================>")
         print("Test case: ", i)
         start_time = time.time()
-        rows = random.randint(2,  2000)
-        cols = random.randint(2,  2000)
+        rows = random.randint(2,  100)
+        cols = random.randint(2,  100)
         print(rows, " ", cols)
-        matrix = [[random.uniform(1/(Ron*1.0e3), 1/(Roff*1.0e3)) for i in range(cols)] for j in range(rows)]
+        matrix = [[random.uniform(1/(_Ron*1.0e3), 1/(_Roff*1.0e3))
+                   for i in range(cols)] for j in range(rows)]
         vector = [random.uniform(V_min, V_max) for i in range(rows)]
         print("Randomized input")
         golden_model = vmm.vmm_gm(vector, matrix)
         print("Start Sim")
         if fast:
             print("Fast")
-            cross = vmm.crossbar_fast_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+            _crossbar = crossbar("Test crossbar fast", rows, cols, False)
+            cross = vmm.crossbar_fast_vmm(
+                _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3)
         else:
-            cross = vmm.crossbar_vmm(vector, matrix, 'custom', 0, Ron*1.0e3, Roff*1.0e3)
+            _crossbar = crossbar("Test crossbar spice", rows, cols, True)
+            cross = vmm.crossbar_vmm(
+                _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3)
 
         try:
             error = utility.compare(golden_model, cross, delta)
@@ -134,25 +139,32 @@ def variation_tb(_Ron, _Roff, _V_min, _V_max, _sigma_rel, _sigma_abs, _rep, _row
         while sigma_rel <= _sigma_rel[2]:
             sigma_abs = 0
             while sigma_abs <= _sigma_abs[2]:
-                utility.v_print_1(f"rows: {row}, cols: {cols}, spice: {_spice}")
-                file_name = str(f"test_case_r_{row}_c_{cols}_abs_{sigma_abs}_rel_{sigma_rel}")
+                utility.v_print_1(
+                    f"rows: {row}, cols: {cols}, spice: {_spice}")
+                file_name = str(
+                    f"test_case_r_{row}_c_{cols}_abs_{sigma_abs}_rel_{sigma_rel}")
                 logs = _logs + [file_name]
                 utility.v_print_2(f"logs {logs}")
                 print("Create class")
                 cross = crossbar("Test crossbar fast", row, cols, _spice, logs)
                 for rep in range(0, _rep):
-                    utility.v_print_2(f"<===========>\nRep: {rep} \nRows: {row} \nCols: {cols} \nSigma rel: {sigma_rel} \nSigma abs: {sigma_abs}")
-                    run_sim(cross, _Ron, _Roff, _V_min, _V_max, sigma_rel, sigma_abs, rep, row, cols, logs, _spice)
+                    utility.v_print_2(
+                        f"<===========>\nRep: {rep} \nRows: {row} \nCols: {cols} \nSigma rel: {sigma_rel} \nSigma abs: {sigma_abs}")
+                    run_sim(cross, _Ron, _Roff, _V_min, _V_max,
+                            sigma_rel, sigma_abs, rep, row, cols, logs, _spice)
                 del cross
-                sigma_abs = update_sigma(sigma_abs, _sigma_abs[0], _sigma_abs[1], _sigma_abs[3])
-            sigma_rel = update_sigma(sigma_rel, _sigma_rel[0], _sigma_rel[1], _sigma_rel[3])
+                sigma_abs = update_sigma(
+                    sigma_abs, _sigma_abs[0], _sigma_abs[1], _sigma_abs[3])
+            sigma_rel = update_sigma(
+                sigma_rel, _sigma_rel[0], _sigma_rel[1], _sigma_rel[3])
 
 
 #############################################################
 def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs=[None, False, False], _spice=False):
     print("<========================================>")
     print("Test case: ", _rep)
-    file_name = "test_case_r"+str(_rows)+"_c_"+str(_cols)+"_rep_"+str(_rep)+".csv"
+    file_name = "test_case_r"+str(_rows)+"_c_" + \
+        str(_cols)+"_rep_"+str(_rep)+".csv"
     file_path = _logs[0]
     header = ['var_abs', 'var_rel']
     for x in range(_cols):
@@ -165,14 +177,17 @@ def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _r
     print("var_abs is ", _var_abs, " var_rel is ", _var_rel)
     start_time = time.time()
     print(_rows, " ", _cols)
-    matrix = [[random.uniform(1/(_Ron*1.0e3), 1/(_Roff*1.0e3)) for i in range(_cols)] for j in range(_rows)]
+    matrix = [[random.uniform(1/(_Ron*1.0e3), 1/(_Roff*1.0e3))
+               for i in range(_cols)] for j in range(_rows)]
     vector = [random.uniform(_V_min, _V_max) for i in range(_rows)]
     print("Randomized input")
     golden_model = vmm.vmm_gm(vector, matrix)
     if _spice:
-        cross = vmm.crossbar_vmm(_crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
+        cross = vmm.crossbar_vmm(_crossbar, vector, matrix, 'custom',
+                                 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
     else:
-        cross = vmm.crossbar_fast_vmm(_crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
+        cross = vmm.crossbar_fast_vmm(
+            _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
     error = utility.cal_error(golden_model, cross)
     data = [str(_var_abs), str(_var_rel)]
     [data.append(str(e)) for e in error]

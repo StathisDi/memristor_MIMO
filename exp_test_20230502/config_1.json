@@ -2,7 +2,7 @@
   "Ron": 1.0e3,
   "Roff": 1.0e6,
   "cols": 250,
-  "rep": 100,
+  "rep": 3,
   "rows": {
     "start": 10,
     "inc": 250,

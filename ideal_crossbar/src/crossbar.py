@@ -31,6 +31,7 @@ from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_MΩ, u_pΩ
 from memristor import memristor
 import numpy as np
+import cupy as cp
 import random
 import re
 from utility import utility
@@ -66,7 +67,8 @@ class crossbar:
         self.devices = [[memristor(((cols*y)+x), rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ, 0.0, 0.0, logs) for x in range(cols)] for y in range(rows)]
         # self.devices = [[print((cols*y)+x) for x in range(cols)] for y in range(rows)]
         print("Devices")
-        self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
+        self.device_state = [
+            [self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         # Input
         self.sources_values = [1@u_V for y in range(rows)]
         # Output
@@ -85,7 +87,8 @@ class crossbar:
 
         if R_read_var == None:
             self.R_read_var = [0 for x in range(cols)]
-            utility.v_print_1("R variations is not defined, 0% variations will be used!")
+            utility.v_print_1(
+                "R variations is not defined, 0% variations will be used!")
         else:
             self.R_read_var = R_read_var
 
@@ -94,11 +97,14 @@ class crossbar:
 
         if R_read == None:
             self.R_read = [0.0000000000000000000001@u_pΩ for x in range(cols)]
-            utility.v_print_1("R_read is not defined, 0.0000000000000000000001 pΩ value will be used!")
+            utility.v_print_1(
+                "R_read is not defined, 0.0000000000000000000001 pΩ value will be used!")
         else:  # assign values to R read including variation
-            self.R_read = [(r+r*random.uniform(0, x)) for x in self.R_read_var for r in R_read]
+            self.R_read = [(r+r*random.uniform(0, x))
+                           for x in self.R_read_var for r in R_read]
 
-        utility.v_print_1("\n\nInitialization of the crossbar setup completed!\n\n")
+        utility.v_print_1(
+            "\n\nInitialization of the crossbar setup completed!\n\n")
 
     ###################################################################################
     def __str__(self):
@@ -117,7 +123,8 @@ class crossbar:
         '''
         for r in self.devices:
             for i in r:
-                i.set_device_type(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)
+                i.set_device_type(device, percentage_var, Ron,
+                                  Roff, relative_sigma, absolute_sigma)
 
     ###################################################################################
     def print_device_coordinates(self):
@@ -126,7 +133,8 @@ class crossbar:
         '''
         for y in range(self.rows):
             for x in range(self.cols):
-                print(self.devices[y][x].coordinates, "=", self.device[y][x].resistance, end=" ")
+                print(self.devices[y][x].coordinates, "=",
+                      self.device[y][x].resistance, end=" ")
             print("")
 
     ###################################################################################
@@ -144,7 +152,8 @@ class crossbar:
             [print(self.read_res[x]) for x in range(self.cols)]
             print(self.circuit)
         else:
-            raise Exception("Netlist has not been created or spice simulation is set to false (self.spice)!")
+            raise Exception(
+                "Netlist has not been created or spice simulation is set to false (self.spice)!")
 
     ###################################################################################
     def detail_print(self):
@@ -177,13 +186,20 @@ class crossbar:
         if self.netlist_created == 1 and self.spice == False:
             print("Fast sim!")
             vector = [float(i.dc_value) for i in self.sources]
-            matrix = [[float(1/self.devices[y][x].R) for x in range(self.cols)] for y in range(self.rows)]
-            vector = np.array(vector)
-            matrix = np.array(matrix).transpose()
-            result = np.inner(vector, matrix)
+            matrix = [[float(1/self.devices[y][x].R)
+                       for x in range(self.cols)] for y in range(self.rows)]
+            if utility.gpu:
+                vector = cp.array(vector)
+                matrix = cp.array(matrix).transpose()
+                result = cp.inner(vector, matrix)
+            else:
+                vector = np.array(vector)
+                matrix = np.array(matrix).transpose()
+                result = np.inner(vector, matrix)
             utility.v_print_1("Fast mem model: \n", result)
         else:
-            raise Exception(f"ERROR [fast_sim  {self.name} ]! There is no defined netlist!")
+            raise Exception(
+                f"ERROR [fast_sim  {self.name} ]! There is no defined netlist!")
 
         return result
 
@@ -196,14 +212,16 @@ class crossbar:
         '''
         self.sources_values = v
         if (self.sources.__len__() != v.__len__()):
-            raise Exception("Input vector of sources, not equal size as the number of sources!")
+            raise Exception(
+                "Input vector of sources, not equal size as the number of sources!")
 
         if self.netlist_created == 1:
             for y in range(self.rows):
                 self.sources[y].dc_value = v[y]
             utility.v_print_1("Netlist is updated!")
         else:
-            utility.v_print_1("Source values are updated, waiting to create netlist!")
+            utility.v_print_1(
+                "Source values are updated, waiting to create netlist!")
 
     ###################################################################################
     def print_sources(self):
@@ -223,11 +241,14 @@ class crossbar:
         Get current values per branch
         '''
         if self.netlist_created == 0 or self.spice == False:
-            raise Exception(f'Function \"get_current\" in {self.name} should not be called when spice is set to False')
+            raise Exception(
+                f'Function \"get_current\" in {self.name} should not be called when spice is set to False')
         # The first row currents are from the sources (negative), the rest are from the resistors
         # The name conventions (i.e. str format) is Branch vr0_plus for resistors and v9 for sources
-        self.I_outputs = [i[0] for i in self.currents if re.match(r"vr", i._name)]
-        [utility.v_print_2(f"Name: {str(i)} Value: {float(i)}") for i in self.currents]
+        self.I_outputs = [i[0]
+                          for i in self.currents if re.match(r"vr", i._name)]
+        [utility.v_print_2(f"Name: {str(i)} Value: {float(i)}")
+         for i in self.currents]
         utility.v_print_1("Calculated outputs:")
         utility.v_print_1(self.I_outputs)
         return self.I_outputs
@@ -242,7 +263,8 @@ class crossbar:
           - x,y : coordinates
           - Resistance to be programmed
         '''
-        utility.v_print_2("Updating device resistance. Device: [", y, ",", x, "]")
+        utility.v_print_2(
+            "Updating device resistance. Device: [", y, ",", x, "]")
         if not ((0 <= y < self.rows) and (0 <= x <= self.cols)):
             raise Exception(f"Try to access device with out of bounds coordinates.\nGiven coordinates: \
                             [{str(y)},{str(x)}]. Valid coordinate range y: [0,{str(self.rows-1)}] range of x: [0,{str(self.cols-1)}]")
@@ -254,7 +276,8 @@ class crossbar:
                 self.res[index].resistance = self.devices[y][x].R
             utility.v_print_2("Resistances in netlist is updated!")
         else:
-            utility.v_print_2("Resistance values are updated, waiting to create netlist!")
+            utility.v_print_2(
+                "Resistance values are updated, waiting to create netlist!")
 
     ###################################################################################
     def update_all_devices(self, resistance_matrix):
@@ -294,7 +317,8 @@ class crossbar:
             # Node 0 i think is ground
             # Generate sources
             for y in range(self.rows):
-                self.circuit.V(str(y), y+1, self.circuit.gnd, self.sources_values[y])
+                self.circuit.V(str(y), y+1, self.circuit.gnd,
+                               self.sources_values[y])
             # Setup devices:
             for y in range(self.rows):
                 for x in range(self.cols):
@@ -304,7 +328,8 @@ class crossbar:
             utility.v_print_2(self.circuit)
 
             for x in range(self.cols):
-                self.circuit.R("_read_"+str(x), self.read_node_str[x], self.circuit.gnd, self.R_read[x])
+                self.circuit.R(
+                    "_read_"+str(x), self.read_node_str[x], self.circuit.gnd, self.R_read[x])
 
             regExR = r"R\d+"
             regExV = r"V\d+"
@@ -323,7 +348,8 @@ class crossbar:
                 i.plus.add_current_probe(self.circuit)
         else:
             # No spice level netlist needs to be created, we just initialize the source vector that is used for other functions
-            self.sources = [self.sources_values[y]@u_V for y in range(self.rows)]
+            self.sources = [self.sources_values[y]
+                            @ u_V for y in range(self.rows)]
             utility.v_print_1("Spice set to false, this function does nothing")
 
     ###################################################################################
@@ -334,17 +360,21 @@ class crossbar:
         print("Spice Sim!")
         if (self.netlist_created == 1) and (self.spice):
 
-            simulator = self.circuit.simulator(temperature=25, nominal_temperature=25)
+            simulator = self.circuit.simulator(
+                temperature=25, nominal_temperature=25)
 
             analysis = simulator.operating_point()
             for node in analysis.nodes.values():
-                utility.v_print_2('Node {}: {} V'.format(str(node), float(node)))
+                utility.v_print_2(
+                    'Node {}: {} V'.format(str(node), float(node)))
 
             for branch in analysis.branches.values():
-                utility.v_print_2("Branch: ", str(branch), " A: ", float(branch))
+                utility.v_print_2("Branch: ", str(
+                    branch), " A: ", float(branch))
                 self.currents.append(branch)
         else:
-            raise Exception(f"ERROR [circuit_solver {self.name}]! There is no defined netlist or spice simulation is not enabled!")
+            raise Exception(
+                f"ERROR [circuit_solver {self.name}]! There is no defined netlist or spice simulation is not enabled!")
 
     ###################################################################################
     def sim(self):

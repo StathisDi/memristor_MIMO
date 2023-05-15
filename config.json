@@ -22,7 +22,7 @@
   },
   "logging": {
     "path": "F:/Users/Dimitris/Documents/Git/memristor_MIMO/exp_data/",
-    "variations": true,
-    "conductance": true
+    "variations": false,
+    "conductance": false
   }
 }

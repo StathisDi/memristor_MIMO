@@ -26,19 +26,20 @@ SOFTWARE.
 
 import csv
 import os
-import gc
 
 # Class with utility functions
 
 
 class utility:
     verbosity = 0
+    gpu = False
 
-    def __init__(self, verb=-1):
-        if (0 <= verb <= 2):
-            utility.verbosity = verb
+    def __init__(self, _verb=-1, _gpu=False):
+        if (0 <= _verb <= 2):
+            utility.verbosity = _verb
         else:
             raise Exception("Verbosity level can take values 0, 1, or 2!")
+        utility.gpu = _gpu
 
     #############################################################
 
@@ -117,7 +118,6 @@ class utility:
             csv_writer.writerow(data)
             csv_writer = None
             f.close()
-        gc.collect()
 
     #############################################################
 
