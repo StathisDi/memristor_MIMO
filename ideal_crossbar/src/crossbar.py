@@ -35,25 +35,38 @@ import cupy as cp
 import random
 import re
 from utility import utility
+import multiprocessing as mp
 
 
 # 1 Class for the Crossbar
 #   Is build as a spice netlist using pyspice
 #   Comprises from resistances in a nxm crossbar, where the n is the input rows and m the output
 #   Has a solver
+# TODO make the crossbar updates parallel
 class crossbar:
 
     ###################################################################################
-    def __init__(self, name="", rows=0, cols=0, spice=False, logs=[None, False, False, None], R_read=None, R_read_var=None):
+    def __init__(self, name="", rows=0, cols=0, spice=False, _logs=[None, None, False, False, None], R_read=None, R_read_var=None):
         '''
         Constructor
-        Inputs:
-          - name (string)
-          - rows, cols: dimensions of the crossbar (integer)
-          - R_read: read resistance (Float)
-          - R_read_var: variations in the read resistance (Float < 1)
-          - spice: Boolean value that specifies if spice simulation will run. If False R_read and _var are ignored (default False)
-          - logs: Array of system path and 2 boolean values (Default [None, False, False])
+
+        Parameters
+        ----------
+          name : string (Default "")
+          rows, cols : Integer (Default 0)
+              Dimensions of the crossbar 
+          spice : Boolean (Default False)
+              Value that specifies if spice simulation will run. If False R_read and _var are ignored
+          logs : Array of system paths, 2 boolean values and filename (Default [None, None, False, False, None])
+              1) Main file path
+              2) Aux file path
+              3) Track variation randomization
+              4) Track programmed conductance
+              5) File name
+          R_read : Float (Default None)
+              Read resistance
+          R_read_var : Float < 1 (Default None)
+              Variations in the read resistance 
         '''
         utility.v_print_1("Creating crossbar!\n")
         self.name = name
@@ -64,11 +77,17 @@ class crossbar:
         self.elements = rows*cols
         self.spice = spice
         # Devices
-        self.devices = [[memristor(((cols*y)+x), rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ, 0.0, 0.0, logs) for x in range(cols)] for y in range(rows)]
-        # self.devices = [[print((cols*y)+x) for x in range(cols)] for y in range(rows)]
+        if utility.par:
+            utility.v_print_1("Parallel execution for initialization of the crossbar!")
+            pool = mp.Pool(mp.cpu_count())
+            self.devices = [[pool.apply(memristor, args=(((cols*y)+x), rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ, 0.0, 0.0, _logs)) for x in range(cols)]for y in range(rows)]
+            self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
+            pool.close()
+        else:
+            utility.v_print_1("Serial execution for initialization of the crossbar!")
+            self.devices = [[memristor(((cols*y)+x), rows, cols, 'ideal', 0, 1@u_pΩ, 10000@u_MΩ, 0.0, 0.0, _logs) for x in range(cols)] for y in range(rows)]
+            self.device_state = [[self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         print("Devices")
-        self.device_state = [
-            [self.devices[y][x].R for x in range(cols)] for y in range(rows)]
         # Input
         self.sources_values = [1@u_V for y in range(rows)]
         # Output
@@ -121,10 +140,15 @@ class crossbar:
           - Ron=1@u_kΩ, Roff=1000@u_kΩ : Ron and Roff values (u_Ω spice unit)
           - relative_sigma=0, absolute_sigma=0 : Write/Read variation (float <1)
         '''
-        for r in self.devices:
-            for i in r:
-                i.set_device_type(device, percentage_var, Ron,
-                                  Roff, relative_sigma, absolute_sigma)
+        if utility.par:
+            pool = mp.Pool(mp.cpu_count())
+            [[pool.apply(i.set_device_type,args=(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)) for i in r] for r in self.devices]
+            pool.close()
+        else:
+            for r in self.devices:
+                for i in r:
+                    i.set_device_type(device, percentage_var, Ron,
+                                      Roff, relative_sigma, absolute_sigma)
 
     ###################################################################################
     def print_device_coordinates(self):
@@ -183,6 +207,7 @@ class crossbar:
         The function is implemented as a vector matrix multiplication between the sources and the conductance values
         of the devices in the crossbar
         '''
+        # TODO parallelize
         if self.netlist_created == 1 and self.spice == False:
             print("Fast sim!")
             vector = [float(i.dc_value) for i in self.sources]
@@ -210,6 +235,7 @@ class crossbar:
         Input:
           - v: Vector with the values of each source, has to be the same height as the rows
         '''
+        #TODO Parallelize
         self.sources_values = v
         if (self.sources.__len__() != v.__len__()):
             raise Exception(
@@ -287,6 +313,7 @@ class crossbar:
         Inputs:
           - Matrix the size of the crossbar with the target resistance values
         '''
+        # TODO make it parallel
         # resistance_matrix.__len__() --> # rows
         # resistance_matrix[0].__len__() --> # columns
         if (resistance_matrix.__len__() != self.rows):
@@ -307,6 +334,7 @@ class crossbar:
         In this case this function only initializes the values of the \"voltage sources\" to 1V
         that will be later used from other functions.
         '''
+        # TODO parallelize
         # Set flag that the netlist has been created
         self.netlist_created = 1
 

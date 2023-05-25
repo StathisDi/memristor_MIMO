@@ -51,6 +51,7 @@ def read_arg():
     parser.add_argument("-c", "--config_file", help="Configuration file", type=pathlib.Path, required=True)
     parser.add_argument("-v", "--verbose", help="Verbose level, 0-none, 1-level 1, 2-level 2", type=int, choices=[0, 1, 2], default=0)
     parser.add_argument("-g", "--gpu", help="GPU execution of matrix operations [boolean]", type=bool, default=False)
+    parser.add_argument("-p", "--par", help="Parallel execution of crossbar device and files updates [boolean]", type=bool, default=False)
     parser.add_argument("-t", "--type", help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
                         type=int, choices=[0, 1, 2, 3], required=True)
 
@@ -63,8 +64,9 @@ def main():
     config_file = args.config_file
     ver_lvl = args.verbose
     gpu = args.gpu
+    par = args.par
     type = int(args.type)
-    util = utility(ver_lvl, gpu)
+    util = utility(ver_lvl, gpu, par)
     config = configuration(config_file)
     Ron = config.Ron
     Roff = config.Roff

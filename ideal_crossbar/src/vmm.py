@@ -56,7 +56,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def crossbar_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''
@@ -86,7 +86,7 @@ class vmm:
 
     #############################################################
 
-    def crossbar_fast_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def crossbar_fast_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
         '''
         Run the memristor simulation for the vector matrix multiplication
         '''

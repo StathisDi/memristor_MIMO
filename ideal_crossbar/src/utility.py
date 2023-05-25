@@ -33,13 +33,15 @@ import os
 class utility:
     verbosity = 0
     gpu = False
+    par = False
 
-    def __init__(self, _verb=-1, _gpu=False):
+    def __init__(self, _verb=-1, _gpu=False, _par=False):
         if (0 <= _verb <= 2):
             utility.verbosity = _verb
         else:
             raise Exception("Verbosity level can take values 0, 1, or 2!")
         utility.gpu = _gpu
+        utility.par = _par
 
     #############################################################
 

@@ -60,6 +60,8 @@ def update_sigma(sigma, start, inc, mul):
 
 
 #############################################################
+# Verification testbench to test the functionality of the classes
+# it has no logging functionality 
 def verification_tb(fast=False, test_cases=2):
     exp_times = []
     exp_rows = []
@@ -119,6 +121,7 @@ def verification_tb(fast=False, test_cases=2):
 
 
 #############################################################
+# Testbench to check the variations
 def variation_tb(_Ron, _Roff, _V_min, _V_max, _sigma_rel, _sigma_abs, _rep, _rows, _cols, _logs, _spice=False):
     """
     Function that implement iterative experiments in a memristor crossbar.
@@ -141,9 +144,11 @@ def variation_tb(_Ron, _Roff, _V_min, _V_max, _sigma_rel, _sigma_abs, _rep, _row
             while sigma_abs <= _sigma_abs[2]:
                 utility.v_print_1(
                     f"rows: {row}, cols: {cols}, spice: {_spice}")
+                # TODO the filename might not be required here
                 file_name = str(
                     f"test_case_r_{row}_c_{cols}_abs_{sigma_abs}_rel_{sigma_rel}")
                 logs = _logs + [file_name]
+                # logs : {main_file_path, aux_file_path, aux_variations(bool), aux_conductance(bool), file_name}
                 utility.v_print_2(f"logs {logs}")
                 print("Create class")
                 cross = crossbar("Test crossbar fast", row, cols, _spice, logs)
@@ -160,16 +165,17 @@ def variation_tb(_Ron, _Roff, _V_min, _V_max, _sigma_rel, _sigma_abs, _rep, _row
 
 
 #############################################################
-def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs=[None, False, False], _spice=False):
+# Run a simulation of the crossbar based on the configuration
+def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs=[None, None, False, False, None], _spice=False):
     print("<========================================>")
     print("Test case: ", _rep)
     file_name = "test_case_r"+str(_rows)+"_c_" + \
         str(_cols)+"_rep_"+str(_rep)+".csv"
-    file_path = _logs[0]
+    file_path = _logs[0] #main file path
     header = ['var_abs', 'var_rel']
     for x in range(_cols):
         header.append(str(x))
-    file = file_path+"/"+file_name
+    file = file_path+"/"+file_name # Location to the file for the main results
     # Only write header once
     if not (os.path.isfile(file)):
         utility.write_to_csv(file_path, file_name, header)
@@ -184,10 +190,10 @@ def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _r
     golden_model = vmm.vmm_gm(vector, matrix)
     if _spice:
         cross = vmm.crossbar_vmm(_crossbar, vector, matrix, 'custom',
-                                 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
+                                 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
     else:
         cross = vmm.crossbar_fast_vmm(
-            _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs, _logs)
+            _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
     error = utility.cal_error(golden_model, cross)
     data = [str(_var_abs), str(_var_rel)]
     [data.append(str(e)) for e in error]

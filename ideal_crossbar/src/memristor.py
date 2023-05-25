@@ -38,16 +38,19 @@ class memristor:
     # u = pint.UnitRegistry()
 
     ###################################################################################
-    def __init__(self, _id=-1, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0, logs=[None, False, False, None]):
+    def __init__(self, _id=-1, rows=-1, cols=-1, device='ideal', percentage_var=0, Ron=1@u_Ω, Roff=1@u_MΩ,  relative_sigma=0, absolute_sigma=0, logs=[None, None, False, False, None]):
         '''
         Memristor device can be configured to:
           - device: 'ideal', 'ferro', 'MF/SI', 'custom'
           - percentage_var: 0 to 0.1
           - Ron/Roff: Positive values of u_Ω, Ron has to be smaller than Roff
           - sigma, relative/absolute: small values (lower than 1) sigma variation for the random distribution
-          - logs: array of a string (system path), different files will be kept for each device),
-                  two boolean values, and an additional string with the the initial part of the file name (Default [None, False, False, None]).
-                  The boolean values define if logs will be created for variations and conductance
+          - logs : Array of system paths, 2 boolean values and filename (Default [None, None, False, False, None])
+              0) Main file path
+              1) Aux file path
+              2) Track variation randomization
+              3) Track programmed conductance
+              4) File name
         '''
         if _id != -1:
             self.id = _id
@@ -57,23 +60,24 @@ class memristor:
             self.coordinates = (self.id//cols, self.id % cols)
         else:
             raise Exception("Number of Rows and Columns must be defined!")
+        # TODO change the log[] to variables 
         self.type = device
         self.set_device_type(device, percentage_var, Ron, Roff, relative_sigma, absolute_sigma)
         self.R = self.Ron
         self.R_range = self.Roff - self.Ron
-        self.keep_variations = logs[1]
-        self.keep_conductance = logs[2]
-        self.file_path = logs[0]
-        self.file_path_var = "var_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[1] else ""
-        self.file_path_cod = "cod_"+logs[3]+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if logs[2] else ""
-        if logs[1]:
-            if logs[3] == None or logs[0] == None:
-                raise Exception("no path given")
+        self.keep_variations = logs[2]
+        self.keep_conductance = logs[3]
+        self.file_path = logs[1]
+        file_name = logs[4]
+        self.file_path_var = "var_"+file_name+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if self.keep_variations else ""
+        self.file_path_cod = "cod_"+file_name+"_id_"+str(self.id)+"_col_"+str(self.coordinates[1])+".csv" if self.keep_conductance else ""
+        # if conductance and variations are too be logged make sure that file path is defined
+        if (self.keep_conductance or self.keep_conductance) and (file_name == None or self.file_path == None):
+            raise Exception("no path given")
+        if self.keep_variations:
             data = ["absolute", "relative"]
             utility.write_to_csv(self.file_path, self.file_path_var, data)
-        if logs[2]:
-            if logs[3] == None or logs[0] == None:
-                raise Exception("no path given")
+        if self.keep_conductance:
             data = ["target", "programmed", "error"]
             utility.write_to_csv(self.file_path, self.file_path_cod, data)
 
@@ -165,6 +169,7 @@ class memristor:
         self.R_range = self.Roff - self.Ron
         utility.v_print_2(self)
         utility.v_print_2("<=================================================>")
+        return 1
 
     ###################################################################################
     def add_variation(self, conductance):

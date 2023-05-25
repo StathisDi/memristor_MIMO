@@ -23,7 +23,6 @@
 import json
 from utility import utility
 
-
 class configuration:
 
     ###################################################################################
@@ -70,6 +69,6 @@ class configuration:
         default_values = [0.001, 0.1, 1, False]
         self.sigma_absolute = self.read_loop_attribute("sigma_absolute", loop_attributes, default_values)
         self.sigma_relative = self.read_loop_attribute("sigma_relative", loop_attributes, default_values)
-        loop_attributes = ["path", "variations", "conductance"]
-        default_values = ["./", False, False]
+        loop_attributes = ["main_path", "aux_path", "variations", "conductance"]
+        default_values = ["./", "./", False, False]
         self.logs = self.read_loop_attribute("logging", loop_attributes, default_values)
