@@ -31,8 +31,6 @@ SOFTWARE.
 # Calculation of Voltages depending on the state of the devices (R) and the Voltage sources
 
 from utility import utility
-from PySpice.Unit import *
-from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_pΩ
 import pathlib
 import random
 from vmm import vmm
@@ -48,18 +46,50 @@ def read_arg():
     parser = argparse.ArgumentParser(
         description="Python simulation for memristor crossbar (experiments with variations)"
     )
-    parser.add_argument("-c", "--config_file", help="Configuration file", type=pathlib.Path, required=True)
-    parser.add_argument("-v", "--verbose", help="Verbose level, 0-none, 1-level 1, 2-level 2", type=int, choices=[0, 1, 2], default=0)
-    parser.add_argument("-g", "--gpu", help="GPU execution of matrix operations [boolean]", type=bool, default=False)
-    parser.add_argument("-p", "--par", help="Parallel execution of crossbar device and files updates [boolean]", type=bool, default=False)
-    parser.add_argument("-t", "--type", help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
-                        type=int, choices=[0, 1, 2, 3], required=True)
+    parser.add_argument(
+        "-c",
+        "--config_file",
+        help="Configuration file",
+        type=pathlib.Path,
+        required=True,
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Verbose level, 0-none, 1-level 1, 2-level 2",
+        type=int,
+        choices=[0, 1, 2],
+        default=0,
+    )
+    parser.add_argument(
+        "-g",
+        "--gpu",
+        help="GPU execution of matrix operations [boolean]",
+        type=bool,
+        default=False,
+    )
+    parser.add_argument(
+        "-p",
+        "--par",
+        help="Parallel execution of crossbar device and files updates [boolean]",
+        type=bool,
+        default=False,
+    )
+    parser.add_argument(
+        "-t",
+        "--type",
+        help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
+        type=int,
+        choices=[0, 1, 2, 3],
+        required=True,
+    )
 
     args = parser.parse_args()
     return args
 
 
 def main():
+    # Add function that reads the json file for the devices
     args = read_arg()
     config_file = args.config_file
     ver_lvl = args.verbose
@@ -82,6 +112,8 @@ def main():
     # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
     logs = config.logs
     del config
+
+    ## TODO remove the spice part and change the crossbar to jia's
     utility.v_print_2(f"Type is {type}")
     utility.v_print_2(f"Ron is {Ron}")
     utility.v_print_2(f"Roff is {Roff}")
@@ -91,18 +123,6 @@ def main():
     utility.v_print_2(f"Cols are {cols}")
     utility.v_print_2(f"Rep is {rep}")
     utility.v_print_2(f"Logs are {logs}")
-    if type == 0:
-        utility.v_print_1(f"Variation experiment - spice")
-        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols, logs, True)
-    elif type == 1:
-        utility.v_print_1(f'Variation experiment - Fast sim')
-        variation_tb(Ron, Roff, 0, 3, sigma_absolute, sigma_relative, rep, rows, cols, logs, False)
-    elif type == 2:
-        utility.v_print_1(f"Verification process for the spice sim")
-        verification_tb(False, rep)
-    elif type == 3:
-        utility.v_print_1(f"Verification process for the fast sim")
-        verification_tb(True, rep)
 
 
 if __name__ == "__main__":
