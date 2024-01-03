@@ -31,7 +31,7 @@ from PySpice.Unit import *
 from PySpice.Unit import u_Ω, u_A, u_V, u_kΩ, u_MΩ, u_pΩ
 from memristor import memristor
 import numpy as np
-import cupy as cp
+# import cupy as cp
 import random
 import re
 from utility import utility
@@ -213,14 +213,17 @@ class crossbar:
             vector = [float(i.dc_value) for i in self.sources]
             matrix = [[float(1/self.devices[y][x].R)
                        for x in range(self.cols)] for y in range(self.rows)]
-            if utility.gpu:
-                vector = cp.array(vector)
-                matrix = cp.array(matrix).transpose()
-                result = cp.inner(vector, matrix)
-            else:
-                vector = np.array(vector)
-                matrix = np.array(matrix).transpose()
-                result = np.inner(vector, matrix)
+            # if utility.gpu:
+            #     vector = cp.array(vector)
+            #     matrix = cp.array(matrix).transpose()
+            #     result = cp.inner(vector, matrix)
+            # else:
+            #     vector = np.array(vector)
+            #     matrix = np.array(matrix).transpose()
+            #     result = np.inner(vector, matrix)
+            vector = np.array(vector)
+            matrix = np.array(matrix).transpose()
+            result = np.inner(vector, matrix)
             utility.v_print_1("Fast mem model: \n", result)
         else:
             raise Exception(

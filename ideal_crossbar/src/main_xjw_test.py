@@ -31,99 +31,25 @@ SOFTWARE.
 # Calculation of Voltages depending on the state of the devices (R) and the Voltage sources
 
 from utility import utility
-import pathlib
-import random
-from vmm import vmm
-import argparse
-from crossbar import crossbar
 from testbenches import *
 from configuration_class import configuration
 
 #############################################################
 
-
-def read_arg():
-    parser = argparse.ArgumentParser(
-        description="Python simulation for memristor crossbar (experiments with variations)"
-    )
-    parser.add_argument(
-        "-c",
-        "--config_file",
-        help="Configuration file",
-        type=pathlib.Path,
-        required=True,
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        help="Verbose level, 0-none, 1-level 1, 2-level 2",
-        type=int,
-        choices=[0, 1, 2],
-        default=0,
-    )
-    parser.add_argument(
-        "-g",
-        "--gpu",
-        help="GPU execution of matrix operations [boolean]",
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-p",
-        "--par",
-        help="Parallel execution of crossbar device and files updates [boolean]",
-        type=bool,
-        default=False,
-    )
-    parser.add_argument(
-        "-t",
-        "--type",
-        help="Experiment type, 0-variation (spice), 1-variation (fast) , 2-spice sim verification, 3-fast sim verification",
-        type=int,
-        choices=[0, 1, 2, 3],
-        required=True,
-    )
-
-    args = parser.parse_args()
-    return args
-
-
 def main():
-    # Add function that reads the json file for the devices
-    args = read_arg()
-    config_file = args.config_file
-    ver_lvl = args.verbose
-    gpu = args.gpu
-    par = args.par
-    type = int(args.type)
-    util = utility(ver_lvl, gpu, par)
-    config = configuration(config_file)
-    Ron = config.Ron
-    Roff = config.Roff
-    # Fields in relative and absolute sigma ["start" - float, "inc" - float, "lim" - float, "mul" -  bool]
-    # for 0 -> start -> start (+ or * depending on mul) incr -> up to lim
-    sigma_relative = config.sigma_relative
-    sigma_absolute = config.sigma_absolute
-    # Fields in rows ["start" - int, "inc" - int, "lim" - int]
-    # for start -> 0 + inc -> inc + inc -> up to lim
-    rows = config.rows
-    cols = config.cols
-    rep = config.rep
-    # Fields in logs ["path" -  string, "variations" - bool, "conductance" - bool]
-    logs = config.logs
-    del config
+    _Ron = 1.0e3  # in kOhm
+    _Roff = 1.0e6  # in kOhm
+    _V_min = 0.0
+    _V_max = 3.0
+    _var_rel = 0 
+    _var_abs = 0
+    _rep = 1
+    _rows = 10
+    _cols = 4
+    _logs=['test_data', None, False, False, None]
 
-    ## TODO remove the spice part and change the crossbar to jia's
-    utility.v_print_2(f"Type is {type}")
-    utility.v_print_2(f"Ron is {Ron}")
-    utility.v_print_2(f"Roff is {Roff}")
-    utility.v_print_2(f"Sigma abs is {sigma_absolute}")
-    utility.v_print_2(f"Sigma rel is {sigma_relative}")
-    utility.v_print_2(f"Rows is {rows}")
-    utility.v_print_2(f"Cols are {cols}")
-    utility.v_print_2(f"Rep is {rep}")
-    utility.v_print_2(f"Logs are {logs}")
-
+    _crossbar = crossbar("Test crossbar fast", _rows, _cols, False)
+    run_fast_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs)
 
 if __name__ == "__main__":
     main()
