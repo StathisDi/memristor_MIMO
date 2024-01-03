@@ -205,7 +205,7 @@ def run_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _r
 
 #############################################################
 # Run a simulation of the crossbar based on the configuration
-def run_fast_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _rep, _rows, _cols, _logs=[None, None, False, False, None]):
+def run_fast_sim(_crossbar, _rep, _rows, _cols, _logs=[None, None, False, False, None]):
     print("<========================================>")
     print("Test case: ", _rep)
     file_name = "test_case_r"+str(_rows)+"_c_" + \
@@ -218,21 +218,29 @@ def run_fast_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _re
     # Only write header once
     if not (os.path.isfile(file)):
         utility.write_to_csv(file_path, file_name, header)
+
     print("<==============>")
-    print("var_abs is ", _var_abs, " var_rel is ", _var_rel)
     start_time = time.time()
-    print(_rows, " ", _cols)
-    matrix = [[random.uniform(1/(_Ron*1.0e3), 1/(_Roff*1.0e3))
-               for i in range(_cols)] for j in range(_rows)]
-    vector = [random.uniform(_V_min, _V_max) for i in range(_rows)]
+    print("Row No. ", _rows, " Column No. ", _cols)
+
+    # matrix and vector random generation
+    matrix = [[random.uniform(0, 1) for i in range(_cols)] for j in range(_rows)]
+    vector = [random.uniform(-1, 1) for i in range(_rows)]
     print("Randomized input")
+
+    # Golden results calculation
     golden_model = vmm.vmm_gm(vector, matrix)
-    cross = vmm.crossbar_fast_vmm(
-        _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
-    error = utility.cal_error(golden_model, cross)
-    data = [str(_var_abs), str(_var_rel)]
-    [data.append(str(e)) for e in error]
-    utility.write_to_csv(file_path, file_name, data)
-    end_time = time.time()
-    exe_time = end_time - start_time
-    print("Execution time: ", exe_time)
+
+    # Memristor-based results simulation
+    # cross = vmm.crossbar_sim_vmm(
+    #     _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
+    
+    # # Error calculation
+    # error = utility.cal_error(golden_model, cross)
+
+    # data = [str(_var_abs), str(_var_rel)]
+    # [data.append(str(e)) for e in error]
+    # utility.write_to_csv(file_path, file_name, data)
+    # end_time = time.time()
+    # exe_time = end_time - start_time
+    # print("Execution time: ", exe_time)
