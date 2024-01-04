@@ -118,19 +118,4 @@ class vmm:
         result = [utility.translate_output(float(i), 1.0) for i in o_current]
         return result
 
-    #############################################################
 
-    def crossbar_sim_vmm(cross, vector, matrix, type='custom', percentage_var=0,  Ron=1@u_pΩ,    Roff=1000@u_kΩ,    relative_sigma=0, absolute_sigma=0):
-        '''
-        Run the memristor simulation for the vector matrix multiplication
-        '''
-
-        # Vector to Voltage
-
-        # Matrix to memristor
-
-        # Crossbar read
-
-        # Current to result
-        
-        return result

@@ -39,6 +39,7 @@ from vmm import vmm
 import os
 from crossbar import crossbar
 import numpy as np
+import torch
 
 
 #############################################################
@@ -224,14 +225,20 @@ def run_fast_sim(_crossbar, _rep, _rows, _cols, _logs=[None, None, False, False,
     print("Row No. ", _rows, " Column No. ", _cols)
 
     # matrix and vector random generation
-    matrix = [[random.uniform(0, 1) for i in range(_cols)] for j in range(_rows)]
-    vector = [random.uniform(-1, 1) for i in range(_rows)]
+    matrix = torch.rand(_rows, _cols)
+    vector = -1 + 2 * torch.rand(_rows)
     print("Randomized input")
 
     # Golden results calculation
-    golden_model = vmm.vmm_gm(vector, matrix)
+    golden_model = torch.matmul(vector, matrix)
 
     # Memristor-based results simulation
+    # Memristor crossbar program
+    _crossbar.mapping_write(target_x=matrix)
+
+    # Memristor crossbar perform matrix vector multiplication
+    # TODO
+    
     # cross = vmm.crossbar_sim_vmm(
     #     _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
     
@@ -241,6 +248,6 @@ def run_fast_sim(_crossbar, _rep, _rows, _cols, _logs=[None, None, False, False,
     # data = [str(_var_abs), str(_var_rel)]
     # [data.append(str(e)) for e in error]
     # utility.write_to_csv(file_path, file_name, data)
-    # end_time = time.time()
-    # exe_time = end_time - start_time
-    # print("Execution time: ", exe_time)
+    end_time = time.time()
+    exe_time = end_time - start_time
+    print("Execution time: ", exe_time)

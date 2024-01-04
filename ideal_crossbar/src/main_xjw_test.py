@@ -35,12 +35,12 @@ import argparse
 from utility import utility
 from testbenches import *
 from configuration_class import configuration
-from mapping import Mapping
+from mapping import MimoMapping
 
 #############################################################
 parser = argparse.ArgumentParser()
 parser.add_argument("--memristor_structure", type=str, default='mimo') # trace, mimo or crossbar 
-parser.add_argument("--memristor_device", type=str, default='ideal') # ideal, ferro, or hu
+parser.add_argument("--memristor_device", type=str, default='ferro') # ideal, ferro, or hu
 parser.add_argument("--c2c_variation", type=bool, default=False)
 parser.add_argument("--d2d_variation", type=int, default=0) # 0: No d2d variation, 1: both, 2: Gon/Goff only, 3: nonlinearity only
 parser.add_argument("--stuck_at_fault", type=bool, default=False)
@@ -74,7 +74,7 @@ def main():
                  'stuck_at_fault': args.stuck_at_fault, 'retention_loss': args.retention_loss,
                  'aging_effect': args.aging_effect}
     
-    _crossbar = Mapping(mem_device=mem_device, shape=(_rows, _cols))
+    _crossbar = MimoMapping(mem_device=mem_device, shape=(_rows, _cols))
     run_fast_sim(_crossbar, _rep, _rows, _cols, _logs)
 
 if __name__ == "__main__":
