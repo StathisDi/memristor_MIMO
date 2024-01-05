@@ -41,7 +41,7 @@ from mapping import MimoMapping
 parser = argparse.ArgumentParser()
 parser.add_argument("--memristor_structure", type=str, default='mimo') # trace, mimo or crossbar 
 parser.add_argument("--memristor_device", type=str, default='ferro') # ideal, ferro, or hu
-parser.add_argument("--c2c_variation", type=bool, default=False)
+parser.add_argument("--c2c_variation", type=bool, default=True)
 parser.add_argument("--d2d_variation", type=int, default=0) # 0: No d2d variation, 1: both, 2: Gon/Goff only, 3: nonlinearity only
 parser.add_argument("--stuck_at_fault", type=bool, default=False)
 parser.add_argument("--retention_loss", type=int, default=0) # retention loss, 0: without it, 1: during pulse, 2: no pluse for a long time
