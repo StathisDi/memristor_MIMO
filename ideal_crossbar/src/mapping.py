@@ -198,7 +198,7 @@ class MimoMapping(Mapping):
         self.mem_t_calculate(mem_step=torch.tensor([0])) 
         
 
-    def mapping_write(self, target_x):
+    def mapping_write_mimo(self, target_x):
         # Memristor reset first
         self.mem_v.fill_(-100) #TODO: check the reset voltage
         # Adopt large negative pulses to reset the memristor array
@@ -215,6 +215,24 @@ class MimoMapping(Mapping):
         for t in range(total_wr_cycle):
             self.mem_v = ((counter * t) < self.write_pulse_no) * write_voltage
             self.mem_array.memristor_write(mem_v=self.mem_v)
+    
+
+    def mapping_read_mimo(self, target_v):
+        # Get threshold voltage
+        mem_info = self.memristor_info_dict[self.device_name]
+        v_off = mem_info['v_off']
+        v_on = mem_info['v_on']
+        v_thre = min(abs(v_off), abs(v_on)) * 0.95
+
+        # Read voltage generation
+        v_read = target_v.unsqueeze(0) * v_thre
+
+        mem_i = self.mem_array.memristor_read(mem_v=v_read)
+
+        # Current to results
+        self.mem_x_read = self.trans_ratio * (mem_i / v_thre - torch.matmul(target_v.unsqueeze(0), torch.ones_like(self.x) * self.Gon))
+
+        return self.mem_x_read
 
 
     def m2v(self, target_matrix):

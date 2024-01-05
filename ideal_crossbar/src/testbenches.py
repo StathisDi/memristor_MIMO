@@ -234,20 +234,20 @@ def run_fast_sim(_crossbar, _rep, _rows, _cols, _logs=[None, None, False, False,
 
     # Memristor-based results simulation
     # Memristor crossbar program
-    _crossbar.mapping_write(target_x=matrix)
-
+    _crossbar.mapping_write_mimo(target_x=matrix)
     # Memristor crossbar perform matrix vector multiplication
-    # TODO
-    
-    # cross = vmm.crossbar_sim_vmm(
-    #     _crossbar, vector, matrix, 'custom', 0, _Ron*1.0e3, _Roff*1.0e3, _var_rel, _var_abs)
-    
-    # # Error calculation
-    # error = utility.cal_error(golden_model, cross)
+    cross = _crossbar.mapping_read_mimo(target_v=vector)
 
-    # data = [str(_var_abs), str(_var_rel)]
-    # [data.append(str(e)) for e in error]
-    # utility.write_to_csv(file_path, file_name, data)
+    # Error calculation
+    error = utility.cal_error(golden_model, cross)
+    error = error.squeeze(0, 1)
+
+    _var_abs = 0
+    _var_rel = 0
+    data = [str(_var_abs), str(_var_rel)]
+    [data.append(str(e.item())) for e in error]
+    utility.write_to_csv(file_path, file_name, data)
+
     end_time = time.time()
     exe_time = end_time - start_time
     print("Execution time: ", exe_time)
