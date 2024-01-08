@@ -32,9 +32,7 @@ SOFTWARE.
 
 import argparse
 
-from utility import utility
 from testbenches import *
-from configuration_class import configuration
 from mapping import MimoMapping
 
 #############################################################
@@ -49,20 +47,6 @@ parser.add_argument("--aging_effect", type=int, default=0) # 0: No aging effect,
 args = parser.parse_args()
 
 def main():
-    # _Ron = 1.0e3  # in kOhm
-    # _Roff = 1.0e6  # in kOhm
-    # _V_min = 0.0
-    # _V_max = 3.0
-    # _var_rel = 0 
-    # _var_abs = 0
-    # 
-    # _rows = 10
-    # _cols = 4
-    # 
-
-    # _crossbar = crossbar("Test crossbar fast", _rows, _cols, False)
-    # run_fast_sim(_crossbar, _Ron, _Roff, _V_min, _V_max, _var_rel, _var_abs, _logs)
-
     batch_size = 1
     _rows = 10
     _cols = 4

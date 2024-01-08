@@ -89,7 +89,7 @@ class Mapping(torch.nn.Module):
 
     def mem_t_calculate(self, mem_step):
         # Calculate the mem_t
-        self.mem_t[:, :, :] = mem_step.view(-1, 1)
+        self.mem_t[:, :, :] = mem_step.view(-1, 1, 1)
         self.mem_t *= self.dt 
         
         
