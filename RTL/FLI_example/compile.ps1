@@ -4,7 +4,10 @@ param(
   [string]$PyPath = "C:\Program Files\Python311",
   [string]$Compiler = "cl",
   [string]$SrcFile = "fli_interface.cpp",
-  [switch]$Help
+  [string]$Out = "null",
+  [switch]$Help,
+  [switch]$Py,
+  [switch]$clean
 )
 
 function Show-Help {
@@ -20,6 +23,62 @@ function Show-Help {
   exit
 }
 
+function Clean-Up {
+  $extensions = @("*.dll", "*.exp", "*.lib", "*.obj")  
+  foreach ($ext in $extensions) {
+    Get-ChildItem -Path . -Filter $ext -Recurse | ForEach-Object {
+      Write-Host "Deleting $($_.FullName)"
+      Remove-Item $_.FullName -ErrorAction Ignore
+    }
+  }
+}
+
+function compile {
+  param (
+    [string]$QSPath,
+    [string]$PyPath,
+    [string]$Compiler,
+    [string]$SrcFile,
+    [switch]$Py
+  )
+
+  $name = (Get-Item $SrcFile).BaseName
+
+  if ($Out -eq "null") {
+    $Out = $name + ".dll"
+  }
+  
+  echo $Out
+  $env:QSPath = $QSPath
+  $env:PyPath = $PyPath
+
+  $includeModelSim = "C:\questasim64_2022.4\include"
+  $includePython = "$PyPath\include"
+  $linkModelSimLib = "$QSPath\win64\mtipli.lib"
+  $linkPythonLib = "$PyPath\libs\python311.lib"
+
+  if ($Py) {
+    & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64 # allias to lunch VS tools C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1
+
+    #cl -c -EHsc -IC:\questasim64_2022.4\include .\hello_world.cpp /link /DLL -export:print_param hello_world.obj C:\questasim64_2022.4\win64\mtipli.lib
+
+    #cl -c /I"C:\questasim64_2022.4\include" /I"C:\Program Files\Python311\include" /LD hello_world.cpp /link -export:print_param print_param.obj C:\questasim64_2022.4\win64\mtipli.lib C:\Program Files\Python311\libs\python311.lib /Fe:print_param.dll
+
+    & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
+    & link -DLL -export:print_param $name".obj" C:\questasim64_2022.4\win64\mtipli.lib /out:$name".dll"
+  }
+  else {
+    & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64 # allias to lunch VS tools C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1
+    
+    #cl -c -EHsc -IC:\questasim64_2022.4\include .\hello_world.cpp /link /DLL -export:print_param hello_world.obj C:\questasim64_2022.4\win64\mtipli.lib
+    
+    #cl -c /I"C:\questasim64_2022.4\include" /I"C:\Program Files\Python311\include" /LD hello_world.cpp /link -export:print_param print_param.obj C:\questasim64_2022.4\win64\mtipli.lib C:\Program Files\Python311\libs\python311.lib /Fe:print_param.dll
+    
+    & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
+    & link -DLL -export:print_param $name".obj" C:\questasim64_2022.4\win64\mtipli.lib /out:$name".dll"
+  }
+}
+
 if ($Help) {
   Show-Help
 }
@@ -29,23 +88,11 @@ if (-not $QSPath -or -not $PyPath -or -not $Compiler -or -not $SrcFile) {
   exit
 }
 
-$env:QSPath = $QSPath
-$env:PyPath = $PyPath
-
-$includeModelSim = "C:\questasim64_2022.4\include"
-$includePython = "$PyPath\include"
-$outputFile = "/Fe: fli_interface.dll"
-$linkModelSimLib = "$QSPath\win64\mtipli.lib"
-$linkPythonLib = "$PyPath\libs\python311.lib"
+if ($clean) {
+  Clean-Up
+}
+else {
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py
+}
 
 
-& 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64 # allias to lunch VS tools C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1
-
-echo $Compiler -c /I$includeModelSim /I$includePython $SrcFile "/link /DLL -export:process_integer process_integer.obj" $linkModelSimLib $linkPythonLib "/out:process_integer.dll"
-
-#cl -c -EHsc -IC:\questasim64_2022.4\include .\hello_world.cpp /link /DLL -export:print_param hello_world.obj C:\questasim64_2022.4\win64\mtipli.lib
-
-#cl -c /I"C:\questasim64_2022.4\include" /I"C:\Program Files\Python311\include" /LD hello_world.cpp /link -export:print_param print_param.obj C:\questasim64_2022.4\win64\mtipli.lib C:\Program Files\Python311\libs\python311.lib /Fe:print_param.dll
-
-#cl -c /EHsc /I"C:\questasim64_2022.4\include" /LD hello_world.cpp 
-# link -DLL -export:print_param hello_world.obj C:\questasim64_2022.4\win64\mtipli.lib /out:print_param.dll
