@@ -1,75 +1,46 @@
 #include <Python.h>
 // #include "mti.h"
-
-#include <Python.h>
 #include <iostream>
 
 int call_increment_function(int input_value)
 {
   Py_Initialize();
+  // Setup the module
+  PyObject *myModuleString = PyUnicode_FromString("process_integer");
+  PyObject *myModule = PyImport_Import(myModuleString);
 
-  // Import the Python module
-  PyObject *pName = PyUnicode_FromString("increment");
-  PyObject *pModule = PyImport_Import(pName);
-  Py_DECREF(pName);
-
-  if (pModule != nullptr)
+  if (myModule != NULL)
   {
-    // Get the increment_value function from the module
-    PyObject *pFunc = PyObject_GetAttrString(pModule, "increment_value");
-    if (pFunc && PyCallable_Check(pFunc))
+    // Python module found, setup the function
+    PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"process_integer");
+    // Setup the parameters for the function
+    PyObject *pArgs = PyTuple_New(1);
+    PyObject *pValue = PyLong_FromLong(input_value);
+    PyTuple_SetItem(pArgs, 0, pValue);
+
+    // If function exists call the function
+    if (pFunc != NULL)
     {
-      // Prepare the argument for the function call
-      PyObject *pArgs = PyTuple_New(1);
-      PyObject *pValue = PyLong_FromLong(input_value);
-      PyTuple_SetItem(pArgs, 0, pValue); // pValue reference stolen here
-
-      // Call the function
       PyObject *pResult = PyObject_CallObject(pFunc, pArgs);
-      Py_DECREF(pArgs);
-
-      if (pResult != nullptr)
+      if (pResult != NULL)
       {
         // Convert the result back to C++ int
         int result = PyLong_AsLong(pResult);
-        Py_DECREF(pResult);
-        Py_DECREF(pFunc);
-        Py_DECREF(pModule);
         Py_Finalize();
-
         return result; // Return the result of the Python function
       }
       else
       {
-        // Handle error: the function returned None
-        Py_DECREF(pFunc);
-        Py_DECREF(pModule);
-        Py_Finalize();
         std::cerr << "Function call failed." << std::endl;
-        return -1;
       }
     }
     else
     {
-      // Handle error: the function was not found or is not callable
-      if (PyErr_Occurred())
-        PyErr_Print();
-      Py_XDECREF(pFunc);
-      Py_DECREF(pModule);
-      Py_Finalize();
-      std::cerr << "Function not callable or not found." << std::endl;
-      return -1;
+      std::cout << "Couldn't find function\n";
     }
   }
   else
-  {
-    // Handle error: the module was not found
-    if (PyErr_Occurred())
-      PyErr_Print();
-    Py_Finalize();
-    std::cerr << "Failed to load module." << std::endl;
-    return -1;
-  }
+    std::cout << "Python Module not found\n";
 }
 
 int main()
