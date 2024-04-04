@@ -7,7 +7,7 @@ param(
   [string]$Out = "null",
   [switch]$Help,
   [switch]$Py,
-  [switch]$Qs,
+  [switch]$Cpp,
   [switch]$clean
 )
 
@@ -21,8 +21,9 @@ function Show_Help {
   "-Help     : Displays this help message."
   "-Clean    : Deletes all generated files instead of compiling."
   "-Py       : Compiles and links with Python libraries, when specified it requires a valid python path."
+  "-Cpp      : Compiles without linking to the questasim libraries. It compiles simple c++ and can be combined with -Py, it generates an exe."
   " "
-  "Example: .\CompileFLI.ps1 -MSPath 'C:\custom\path\to\modelsim' -PyPath 'C:\custom\path\to\python' -Compiler 'C:\path\to\compiler\cl.exe' -SrcFile 'my_custom_file.cpp'"
+  "Example: .\CompileFLI.ps1 -QSPath 'C:\custom\path\to\modelsim' -PyPath 'C:\custom\path\to\python' -Compiler 'C:\path\to\compiler\cl.exe' -SrcFile 'my_custom_file.cpp'"
   exit
 }
 
@@ -42,7 +43,8 @@ function Compile {
     [string]$PyPath,
     [string]$Compiler,
     [string]$SrcFile,
-    [switch]$Py
+    [switch]$Py,
+    [switch]$Cpp
   )
 
   $name = (Get-Item $SrcFile).BaseName
@@ -54,20 +56,29 @@ function Compile {
   $env:QSPath = $QSPath
   $env:PyPath = $PyPath
 
-  $includeModelSim = "C:\questasim64_2022.4\include"
+  $includeModelSim = "$QSPath\include"
   $includePython = "$PyPath\include"
   $linkModelSimLib = "$QSPath\win64\mtipli.lib"
   $linkPythonLib = "$PyPath\libs\python311.lib"
 
   & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64 
-
   if ($Py) {
-    & $Compiler -c /EHsc /I$includeModelSim /I$includePython /LD $SrcFile 
-    & link -DLL -export:print_param $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+    if ($Cpp) {
+      cl /I$includePython $SrcFile /link $linkPythonLib
+    }
+    else {
+      & $Compiler -c /EHsc /I$includeModelSim /I$includePython /LD $SrcFile 
+      & link -DLL -export:print_param $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+    }
   }
   else {
-    & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
-    & link -DLL -export:print_param $name".obj" $linkModelSimLib /out:$Out
+    if ($Cpp) {
+      cl $SrcFile
+    }
+    else {
+      & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
+      & link -DLL -export:print_param $name".obj" $linkModelSimLib /out:$Out
+    }
   }
 }
 

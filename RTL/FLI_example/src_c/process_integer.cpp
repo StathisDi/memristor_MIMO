@@ -5,7 +5,11 @@
 int call_increment_function(int input_value)
 {
   Py_Initialize();
-  // Setup the module
+  // Setup the path
+  PyObject *sysPath = PySys_GetObject("path");
+  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL/FLI_example/src_c"));
+  // exit(0);
+  //  Setup the module
   PyObject *myModuleString = PyUnicode_FromString("process_integer");
   PyObject *myModule = PyImport_Import(myModuleString);
 
@@ -40,7 +44,10 @@ int call_increment_function(int input_value)
     }
   }
   else
+  {
     std::cout << "Python Module not found\n";
+    exit(-1);
+  }
 }
 
 int main()
