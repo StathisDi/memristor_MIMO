@@ -22,7 +22,7 @@ BEGIN
   call_pass_integer_to_python : PROCESS (int_signal)
     VARIABLE out_int : INTEGER := 0;
   BEGIN
-    incrementor(int_signal, out_int);
+    incr_py(int_signal, out_int);
     out_sig <= out_int;
   END PROCESS;
 END Behavioral;

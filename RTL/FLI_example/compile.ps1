@@ -80,7 +80,7 @@ function Compile {
     }
     else {
       echo "Compiling QS with Python"
-      & $Compiler -c /EHsc /I$includeModelSim /I$includePython /LD $SrcFile 
+      & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #-export:print_param
     }
