@@ -7,6 +7,7 @@ END Testbench;
 
 ARCHITECTURE Behavioral OF Testbench IS
   SIGNAL int_signal : INTEGER := 0;
+  SIGNAL out_sig    : INTEGER := 0;
 BEGIN
   -- Process to modify integer signal
   int_process : PROCESS
@@ -19,7 +20,9 @@ BEGIN
   END PROCESS;
   -- Call the foreign C++ function with the integer signal value
   call_pass_integer_to_python : PROCESS (int_signal)
+    VARIABLE out_int : INTEGER := 0;
   BEGIN
-    incrementor(int_signal);
+    incrementor(int_signal, out_int);
+    out_sig <= out_int;
   END PROCESS;
 END Behavioral;

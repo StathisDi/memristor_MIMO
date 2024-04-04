@@ -5,6 +5,7 @@ param(
   [string]$Compiler = "cl",
   [string]$SrcFile = "fli_interface.cpp",
   [string]$Out = "null",
+  [string]$Func = "null",
   [switch]$Help,
   [switch]$Py,
   [switch]$Cpp,
@@ -18,6 +19,8 @@ function Show_Help {
   "-PyPath   : Specifies the path to the Python installation directory. Default is 'C:\Program Files\Python311'. This is ignored when the -Py option is not used."
   "-Compiler : Specifies the path to the compiler executable (e.g., 'cl'). Default is 'cl'."
   "-SrcFile  : Specifies the name of the source file to compile. Default is 'fli_interface.cpp'."
+  "-Out      : Specifies the name of the output file name. Default is the same as the input source file name .dll."
+  "Func      : Specifies the name of the foreign function. Default is the same as the input source file name."
   "-Help     : Displays this help message."
   "-Clean    : Deletes all generated files instead of compiling."
   "-Py       : Compiles and links with Python libraries, when specified it requires a valid python path."
@@ -43,6 +46,8 @@ function Compile {
     [string]$PyPath,
     [string]$Compiler,
     [string]$SrcFile,
+    [string]$Out,
+    [string]$Func,
     [boolean]$Py,
     [boolean]$Cpp
   )
@@ -51,6 +56,10 @@ function Compile {
 
   if ($Out -eq "null") {
     $Out = $name + ".dll"
+  }
+
+  if ($Func -eq "null") {
+    $Func = $name
   }
 
   $env:QSPath = $QSPath
@@ -72,7 +81,7 @@ function Compile {
     else {
       echo "Compiling QS with Python"
       & $Compiler -c /EHsc /I$includeModelSim /I$includePython /LD $SrcFile 
-      & link -DLL $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+      & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #-export:print_param
     }
   }
@@ -84,7 +93,7 @@ function Compile {
     else {
       echo "Compiling QS"
       & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
-      & link -DLL -export:incrementor $name".obj" $linkModelSimLib /out:$Out
+      & link -DLL -export:$Func $name".obj" $linkModelSimLib /out:$Out
     }
   }
 }
@@ -102,7 +111,7 @@ if ($clean) {
   Clean_Up
 }
 else {
-  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py -Cpp $Cpp
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Out $Out -Func $Func -Py $Py -Cpp $Cpp
 }
 
 
