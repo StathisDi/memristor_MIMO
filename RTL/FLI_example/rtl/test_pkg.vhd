@@ -1,11 +1,11 @@
 PACKAGE test_pkg IS
-  PROCEDURE print_param(vhdl_integer : IN INTEGER);
+  PROCEDURE incrementor(vhdl_integer : IN INTEGER);
   -- Foreign function declaration (to be linked with C++ function)
-  ATTRIBUTE foreign OF print_param   : PROCEDURE IS "print_param print_param.dll";
+  ATTRIBUTE foreign OF incrementor   : PROCEDURE IS "incrementor incrementor.dll";
 END PACKAGE;
 
 PACKAGE BODY test_pkg IS
-  PROCEDURE print_param (vhdl_integer : IN INTEGER) IS
+  PROCEDURE incrementor (vhdl_integer : IN INTEGER) IS
   BEGIN
     REPORT "Error";
   END PROCEDURE;

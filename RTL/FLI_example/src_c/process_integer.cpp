@@ -1,13 +1,16 @@
 #include <Python.h>
 // #include "mti.h"
 #include <iostream>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 int call_increment_function(int input_value)
 {
+  char *srcpath = strcat(getenv("USERPROFILE"), "/Documents/github/memristor_MIMO/RTL/FLI_example/src_c");
   Py_Initialize();
   // Setup the path
   PyObject *sysPath = PySys_GetObject("path");
-  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL/FLI_example/src_c"));
+  PyList_Append(sysPath, PyUnicode_FromString(srcpath));
   // exit(0);
   //  Setup the module
   PyObject *myModuleString = PyUnicode_FromString("process_integer");

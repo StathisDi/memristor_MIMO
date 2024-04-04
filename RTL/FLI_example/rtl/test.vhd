@@ -20,6 +20,6 @@ BEGIN
   -- Call the foreign C++ function with the integer signal value
   call_pass_integer_to_python : PROCESS (int_signal)
   BEGIN
-    print_param(int_signal);
+    incrementor(int_signal);
   END PROCESS;
 END Behavioral;

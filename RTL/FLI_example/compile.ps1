@@ -43,8 +43,8 @@ function Compile {
     [string]$PyPath,
     [string]$Compiler,
     [string]$SrcFile,
-    [switch]$Py,
-    [switch]$Cpp
+    [boolean]$Py,
+    [boolean]$Cpp
   )
 
   $name = (Get-Item $SrcFile).BaseName
@@ -60,24 +60,31 @@ function Compile {
   $includePython = "$PyPath\include"
   $linkModelSimLib = "$QSPath\win64\mtipli.lib"
   $linkPythonLib = "$PyPath\libs\python311.lib"
+  $cppStandard = "/std:c++17"
 
-  & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64 
+  & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64
+
   if ($Py) {
     if ($Cpp) {
-      cl /I$includePython $SrcFile /link $linkPythonLib
+      echo "Compiling C++ with Python"
+      cl /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
     }
     else {
+      echo "Compiling QS with Python"
       & $Compiler -c /EHsc /I$includeModelSim /I$includePython /LD $SrcFile 
-      & link -DLL -export:print_param $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+      & link -DLL $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+      #-export:print_param
     }
   }
   else {
     if ($Cpp) {
-      cl $SrcFile
+      echo "Compiling simple c++"
+      cl /EHsc $cppStandard $SrcFile
     }
     else {
+      echo "Compiling QS"
       & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
-      & link -DLL -export:print_param $name".obj" $linkModelSimLib /out:$Out
+      & link -DLL -export:incrementor $name".obj" $linkModelSimLib /out:$Out
     }
   }
 }
@@ -95,7 +102,7 @@ if ($clean) {
   Clean_Up
 }
 else {
-  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py 
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py -Cpp $Cpp
 }
 
 
