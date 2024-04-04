@@ -11,7 +11,7 @@ param(
   [switch]$clean
 )
 
-function Show-Help {
+function Show_Help {
   "Usage: .\CompileFLI.ps1 [-QSPath <path>] [-PyPath <path>] [-Compiler <path>] [-SrcFile <filename>] [-Help]"
   " "
   "-QSPath   : Specifies the path to the ModelSim installation directory. Default is 'C:\questasim64_2022.4'."
@@ -26,7 +26,7 @@ function Show-Help {
   exit
 }
 
-function Clean-Up {
+function Clean_Up {
   $extensions = @("*.dll", "*.exp", "*.lib", "*.obj")  
   foreach ($ext in $extensions) {
     Get-ChildItem -Path . -Filter $ext -Recurse | ForEach-Object {
@@ -72,7 +72,7 @@ function Compile {
 }
 
 if ($Help) {
-  Show-Help
+  Show_Help
 }
 
 if (-not $QSPath -or -not $PyPath -or -not $Compiler -or -not $SrcFile) {
@@ -81,7 +81,7 @@ if (-not $QSPath -or -not $PyPath -or -not $Compiler -or -not $SrcFile) {
 }
 
 if ($clean) {
-  Clean-Up
+  Clean_Up
 }
 else {
   Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py 
