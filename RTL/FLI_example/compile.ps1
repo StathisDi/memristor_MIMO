@@ -7,6 +7,7 @@ param(
   [string]$Out = "null",
   [switch]$Help,
   [switch]$Py,
+  [switch]$Qs,
   [switch]$clean
 )
 
@@ -83,7 +84,7 @@ if ($clean) {
   Clean-Up
 }
 else {
-  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Py $Py 
 }
 
 
