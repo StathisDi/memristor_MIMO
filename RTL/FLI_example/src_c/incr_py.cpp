@@ -1,17 +1,16 @@
 #include <Python.h>
 #include "mti.h"
-#include <iostream>
-#include <filesystem>
-namespace fs = std::filesystem;
-// TODO when executed in questasim, the python module is not found. Possible solution change the src path to hardcoded and remove the filesystem requirement, alternatively compile and call the executable
+// #include <iostream>
+// #include <filesystem>
+// namespace fs = std::filesystem;
 
 int call_increment_function(int input_value)
 {
-  char *srcpath = strcat(getenv("USERPROFILE"), "/Documents/github/memristor_MIMO/RTL/FLI_example/src_c");
+  // char *srcpath = strcat(getenv("USERPROFILE"), "/Documents/github/memristor_MIMO/RTL/FLI_example/src_c");
   Py_Initialize();
   // Setup the path
   PyObject *sysPath = PySys_GetObject("path");
-  PyList_Append(sysPath, PyUnicode_FromString(srcpath));
+  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL/FLI_example/src_c"));
   // exit(0);
   //  Setup the module
   PyObject *myModuleString = PyUnicode_FromString("process_integer");
