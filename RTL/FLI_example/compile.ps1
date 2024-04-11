@@ -85,11 +85,11 @@ function Compile {
 
   if ($Py) {
     if ($Cpp) {
-      echo "Compiling C++ with Python"
+      Write-Output "Compiling C++ with Python"
       cl /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
     }
     else {
-      echo "Compiling QS with Python"
+      Write-Outpute-Output "Compiling QS with Python"
       & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #-export:print_param
@@ -97,11 +97,11 @@ function Compile {
   }
   else {
     if ($Cpp) {
-      echo "Compiling simple c++"
+      Write-Output "Compiling simple c++"
       cl /EHsc $cppStandard $SrcFile
     }
     else {
-      echo "Compiling QS"
+      Write-Output "Compiling QS"
       & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib /out:$Out
     }
