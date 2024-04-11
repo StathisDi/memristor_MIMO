@@ -4,6 +4,9 @@ param(
   [string]$PyPath = "C:\Program Files\Python311",
   [string]$Compiler = "cl",
   [string]$SrcFile = "fli_interface.cpp",
+  [string]$DevShell = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1",
+  [string]$Arch = "amd64",
+  [string]$HostArch = "amd64",
   [string]$Out = "null",
   [string]$Func = "null",
   [switch]$Help,
@@ -13,18 +16,22 @@ param(
 )
 
 function Show_Help {
-  "Usage: .\CompileFLI.ps1 [-QSPath <path>] [-PyPath <path>] [-Compiler <path>] [-SrcFile <filename>] [-Help]"
+  "This script can be used to compile c/c++ code in windows. It can link the code with Questasim FLI and python libraries."
+  "Usage: .\CompileFLI.ps1 [-QSPath <path>] [-PyPath <path>] [-Compiler <cmdlet>] [-SrcFile <filename>] [-DevShell <path>] [-HostArch <arch name>] [-Arch <arch name>] [-Out <filename>] [-Func <function name>] [-Py] [-Cpp] [-Clean] [-Help]"
   " "
-  "-QSPath   : Specifies the path to the ModelSim installation directory. Default is 'C:\questasim64_2022.4'."
-  "-PyPath   : Specifies the path to the Python installation directory. Default is 'C:\Program Files\Python311'. This is ignored when the -Py option is not used."
-  "-Compiler : Specifies the path to the compiler executable (e.g., 'cl'). Default is 'cl'."
-  "-SrcFile  : Specifies the name of the source file to compile. Default is 'fli_interface.cpp'."
-  "-Out      : Specifies the name of the output file name. Default is the same as the input source file name .dll."
-  "Func      : Specifies the name of the foreign function. Default is the same as the input source file name."
-  "-Help     : Displays this help message."
-  "-Clean    : Deletes all generated files instead of compiling."
-  "-Py       : Compiles and links with Python libraries, when specified it requires a valid python path."
-  "-Cpp      : Compiles without linking to the questasim libraries. It compiles simple c++ and can be combined with -Py, it generates an exe."
+  "[string] -QSPath   : Specifies the path to the ModelSim installation directory. Default is 'C:\questasim64_2022.4'."
+  "[string] -PyPath   : Specifies the path to the Python installation directory. Default is 'C:\Program Files\Python311'. This is ignored when the -Py option is not used."
+  "[string] -Compiler : Specifies the compiler executable (e.g., 'cl'). Default is 'cl'."
+  "[string] -SrcFile  : Specifies the name of the source file to compile. Default is 'fli_interface.cpp'."
+  "[string] -DevShell : Specifies the path to the developement shell script for windows, default is C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"
+  "[string] -Arch     : Specifies the traget architecture, default is amd64."
+  "[string] -HostArch : Specifies the host architecture, default is amd64."
+  "[string] -Out      : Specifies the name of the output file name. Default is the same as the input source file name .dll."
+  "[string] -Func     : Specifies the name of the foreign function. Default is the same as the input source file name."
+  "[switch] -Help     : Displays this help message."
+  "[switch] -Clean    : Deletes all generated files instead of compiling."
+  "[switch] -Py       : Compiles and links with Python libraries, when specified it requires a valid python path."
+  "[switch] -Cpp      : Compiles without linking to the questasim libraries. It compiles simple c++ and can be combined with -Py, it generates an exe."
   " "
   "Example: .\CompileFLI.ps1 -QSPath 'C:\custom\path\to\modelsim' -PyPath 'C:\custom\path\to\python' -Compiler 'C:\path\to\compiler\cl.exe' -SrcFile 'my_custom_file.cpp'"
   exit
@@ -46,6 +53,9 @@ function Compile {
     [string]$PyPath,
     [string]$Compiler,
     [string]$SrcFile,
+    [string]$DevShell,
+    [string]$Arch,
+    [string]$HostArch,
     [string]$Out,
     [string]$Func,
     [boolean]$Py,
@@ -71,7 +81,7 @@ function Compile {
   $linkPythonLib = "$PyPath\libs\python311.lib"
   $cppStandard = "/std:c++17"
 
-  & 'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1' -Arch amd64 -HostArch amd64
+  & $DevShell -Arch $Arch -HostArch $HostArch
 
   if ($Py) {
     if ($Cpp) {
@@ -111,7 +121,7 @@ if ($clean) {
   Clean_Up
 }
 else {
-  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -Out $Out -Func $Func -Py $Py -Cpp $Cpp
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -DevShell $DevShell -Arch $Arch -HostArch $HostArch -Out $Out -Func $Func -Py $Py -Cpp $Cpp
 }
 
 
