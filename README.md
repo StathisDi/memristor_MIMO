@@ -17,6 +17,14 @@ Installation instructions for PySpice can be found [here](https://pyspice.fabric
 
 1) [Pandas](https://github.com/pandas-dev/pandas)
 
+## For RTL/FLI 
+
+To co-simulate the crossbar implemented in python together with the RTL models of the digital side of the architecture we are using the FLI of Questasim/Modelsim.
+
+To simulate the combined design you need Questasim/Modelsim, a c/c++ compiler and have python installed.
+
+The scripts to compile the c+python model and simulate it together with the RTL model of the digital side in windows can be found in the **RTL_FLI** folder.
+
 # LICENSE
 
 MIT License
