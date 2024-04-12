@@ -1,0 +1,3 @@
+[submodule "modules/MemMIMO"]
+	path = modules/MemMIMO
+	url = https://github.com/JoyJXU/MemMIMO.git
