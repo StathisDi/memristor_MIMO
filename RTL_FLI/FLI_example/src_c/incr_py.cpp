@@ -7,11 +7,30 @@
 using namespace std;
 #endif
 
+#if MTI == 1
+extern "C" void py_init(int x)
+#else
+void py_init(int x)
+#endif
+{
+  Py_Initialize();
+}
+
+#if MTI == 1
+extern "C" void py_fin(int x)
+#else
+void py_fin(int x)
+#endif
+{
+  Py_Finalize();
+}
+
 int call_increment_function(int input_value, int x)
 {
   // char *srcpath = strcat(getenv("USERPROFILE"), "/Documents/github/memristor_MIMO/RTL/FLI_example/src_c");
-  Py_Initialize();
+  // Py_Initialize();
   // Setup the path
+  py_init(0);
   PyObject *sysPath = PySys_GetObject("path");
   PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_example/src_c"));
   // exit(0);
@@ -40,7 +59,8 @@ int call_increment_function(int input_value, int x)
       {
         // Convert the result back to C++ int
         int result = PyLong_AsLong(pResult);
-        Py_Finalize();
+        // Py_Finalize();
+        py_fin(0);
 #if MTI != 1
         cout << "return value " << result << endl;
 #endif

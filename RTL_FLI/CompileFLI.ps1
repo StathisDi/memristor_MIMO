@@ -92,6 +92,9 @@ function Compile {
       Write-Output "Compiling QS with Python"
       & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
+      & link -DLL -export:py_init $name".obj" $linkModelSimLib $linkPythonLib /out:py_init.dll
+      & link -DLL -export:py_fin $name".obj" $linkModelSimLib $linkPythonLib /out:py_fin.dll
+      #& link -DLL $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #-export:print_param
     }
   }
