@@ -92,7 +92,7 @@ void incr_py(int vhdl_integer, int *out_int)
   x = call_increment_function(vhdl_integer, x);
   *out_int = x;
 #if MTI == 1
-  mti_PrintFormatted("The value of input is %d, the x is %d, the return value is %d\n", vhdl_integer, x, out_int);
+  mti_PrintFormatted("The value of input is %d, the x is %d, the return value is %d\n", vhdl_integer, x, *out_int);
 #else
   cout << "The value of the input is " << vhdl_integer << " the x is " << x << " the return value is " << *out_int << endl;
 #endif
