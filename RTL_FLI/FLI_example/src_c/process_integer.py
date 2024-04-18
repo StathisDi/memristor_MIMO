@@ -1,2 +1,4 @@
-def process_integer(vin):
-    return int(vin) + 1
+def process_integer(vin, x):
+    print("Python function")
+    x = int(vin) + int(x)
+    return x

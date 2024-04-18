@@ -38,7 +38,7 @@ function Show_Help {
 }
 
 function Clean_Up {
-  $extensions = @("*.dll", "*.exp", "*.lib", "*.obj")  
+  $extensions = @("*.dll", "*.exp", "*.lib", "*.obj", ".exe")  
   foreach ($ext in $extensions) {
     Get-ChildItem -Path . -Filter $ext -Recurse | ForEach-Object {
       Write-Host "Deleting $($_.FullName)"
@@ -89,7 +89,7 @@ function Compile {
       cl /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
     }
     else {
-      Write-Outpute-Output "Compiling QS with Python"
+      Write-Output "Compiling QS with Python"
       & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #-export:print_param
