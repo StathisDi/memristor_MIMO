@@ -2,7 +2,7 @@ ENTITY for_model IS
 END for_model;
 
 ARCHITECTURE arch OF for_model IS
-  ATTRIBUTE foreign OF aarch : ARCHITECTURE IS "initForeign for_model.sl;";
+  ATTRIBUTE foreign OF arch : ARCHITECTURE IS "initForeign array.dll;";
 BEGIN
 END arch;
 

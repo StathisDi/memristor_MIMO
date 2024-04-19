@@ -5,7 +5,7 @@ typedef struct varInfoT_tag
   struct varInfoT_tag *next;
   char *name;
   mtiSignalIdT varid;
-  mtiTypeIdT typeid;
+  mtiTypeIdT type_id; // renamed to type_id to be compatible with c++
 } varInfoT;
 
 typedef struct
@@ -76,7 +76,7 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
       enum_values = mti_GetEnumValues(elem_type);
       if (mti_TickLength(elem_type) > 256)
       {
-        mtiInt32T *val = array_val;
+        mtiInt32T *val = (mtiInt32T *)array_val;
         for (i = 0; i < num_elems; i++)
         {
           mti_PrintFormatted("  %s", enum_values[val[i]]);
@@ -84,7 +84,7 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
       }
       else
       {
-        char *val = array_val;
+        char *val = (char *)array_val;
         for (i = 0; i < num_elems; i++)
         {
           mti_PrintFormatted("  %s", enum_values[val[i]]);
@@ -95,7 +95,7 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     case MTI_TYPE_PHYSICAL:
     case MTI_TYPE_SCALAR:
     {
-      mtiInt32T *val = array_val;
+      mtiInt32T *val = (mtiInt32T *)array_val;
       for (i = 0; i < num_elems; i++)
       {
         mti_PrintFormatted("  %d", val[i]);
@@ -110,7 +110,7 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
       break;
     case MTI_TYPE_REAL:
     {
-      double *val = array_val;
+      double *val = (double *)array_val;
       for (i = 0; i < num_elems; i++)
       {
         mti_PrintFormatted("  %g", val[i]);
@@ -119,7 +119,7 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     break;
     case MTI_TYPE_TIME:
     {
-      mtiTime64T *val = array_val;
+      mtiTime64T *val = (mtiTime64T *)array_val;
       for (i = 0; i < num_elems; i++)
       {
         mti_PrintFormatted("  [%d,%d]",
@@ -207,9 +207,9 @@ static varInfoT *setupVariable(mtiVariableIdT varid)
   varInfoT *varinfo;
 
   varinfo = (varInfoT *)mti_Malloc(sizeof(varInfoT));
-  varinfo->varid = varid;
+  varinfo->varid = (mtiSignalIdT)varid;
   varinfo->name = mti_GetVarName(varid);
-  varinfo->typeid = mti_GetVarType(varid);
+  varinfo->type_id = mti_GetVarType(varid);
   varinfo->next = 0;
 
   return (varinfo);
@@ -245,7 +245,7 @@ static void initInstance(void *param)
     mti_Malloc() automatically checks for a NULL pointer. In the case of an allocation error, mti_Malloc() issues the following error message and aborts the simulation:
 
   */
-  inst_data = mti_Malloc(sizeof(instanceInfoT)); // Allocate memory for the module in the simulator
+  inst_data = (instanceInfoT *)mti_Malloc(sizeof(instanceInfoT)); // Allocate memory for the module in the simulator
 
   // Set the variables info to 0
   inst_data->var_info = 0;
@@ -332,7 +332,7 @@ static void initInstance(void *param)
 */
 
 // Main function that links to an architecture
-void initForeign(
+extern "C" void initForeign(
     mtiRegionIdT region,         /* The ID of the region in which this     */
                                  /* foreign architecture is instantiated.  */
     char *param,                 /* The last part of the string in the     */
