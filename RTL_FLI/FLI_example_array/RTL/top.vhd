@@ -35,6 +35,8 @@ ARCHITECTURE a OF top IS
 
 BEGIN
 
+  -- Instantiate the C defined architecture
+  -- This essentially generates a process specified by the C function
   inst1                : for_model;
 
   p1 : PROCESS

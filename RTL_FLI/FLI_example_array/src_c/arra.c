@@ -16,18 +16,19 @@ typedef struct
 
 static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
 {
+  // Get the type of the variable to print
   switch (mti_GetTypeKind(vartype))
   {
-  case MTI_TYPE_ENUM:
-  case MTI_TYPE_PHYSICAL:
-  case MTI_TYPE_SCALAR:
+  case MTI_TYPE_ENUM:     // Enumeration
+  case MTI_TYPE_PHYSICAL: // Physical (not sure but I believe it has to do with physical units)
+  case MTI_TYPE_SCALAR:   // Integer variable
   {
     mtiInt32T scalar_val;
-    scalar_val = mti_GetVarValue(varid);
-    mti_PrintFormatted("  %d\n", scalar_val);
+    scalar_val = mti_GetVarValue(varid);      // Get value of the specific variable (of type integer)
+    mti_PrintFormatted("  %d\n", scalar_val); // Print the value
   }
   break;
-  case MTI_TYPE_ARRAY:
+  case MTI_TYPE_ARRAY: // Array type
   {
     int i;
     mtiInt32T num_elems;
@@ -35,11 +36,39 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     mtiTypeKindT elem_typekind;
     void *array_val;
 
-    array_val = mti_GetArrayVarValue(varid, 0);
-    num_elems = mti_TickLength(vartype);
-    elem_type = mti_GetArrayElementType(vartype);
-    elem_typekind = mti_GetTypeKind(elem_type);
-    switch (elem_typekind)
+    /*
+
+    mti_GetArrayVarValue() returns the value of an array-type VHDL variable.
+    If the buffer parameter is NULL, then mti_GetArrayVarValue() returns a pointer to the value, which should be treated as read-only data. (Changing the value pointed to by this pointer actually changes the variable's value.) This pointer must not be freed.
+    If the buffer parameter is not NULL, then mti_GetArrayVarValue() copies the value into the buffer parameter and also returns a pointer to it. The appropriate length of the buffer parameter can be determined by calling mti_TickLength() on the type of the array variable.
+    The array value is interpreted as follows:
+
+    For a subelement of type : The value should be cast to
+    Enum                     : (char *) if <= 256 values
+                               (mtiInt32T *) if > 256 values
+    Physical                 : (mtiInt32T *)
+    Real                     : (double *)
+    Scalar (Integer)         : (mtiInt32T *)
+    Time                     : (mtiTime64T *)
+
+    */
+    array_val = mti_GetArrayVarValue(varid, 0);   // returns pointer to the values since the second parameter is 0? Otherwise it copies the value of the variable to the buffer
+    num_elems = mti_TickLength(vartype);          // Get the length of the array (length of the variable (type'HIGH - type'LOW + 1))
+    elem_type = mti_GetArrayElementType(vartype); // returns a handle to the type ID for the subelements of the specified array type. If the array_type parameter is not a handle to an array type, then NULL is returned.
+    elem_typekind = mti_GetTypeKind(elem_type);   // returns the kind of the specified VHDL or SystemC type. The returned value is one of the following:
+    /*
+    type_kind        : VHDL type
+    MTI_TYPE_SCALAR  : Integer
+    MTI_TYPE_ARRAY   : Array
+    MTI_TYPE_RECORD  : Record
+    MTI_TYPE_ENUM    : Enumeration
+    MTI_TYPE_PHYSICAL: Physical
+    MTI_TYPE_REAL    : Real
+    MTI_TYPE_ACCESS  : Access
+    MTI_TYPE_FILE    : File
+    MTI_TYPE_TIME    : Time
+    */
+    switch (elem_typekind) // Select action based on the element type
     {
     case MTI_TYPE_ENUM:
     {
@@ -105,13 +134,19 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     mti_PrintFormatted("\n");
   }
   break;
-  case MTI_TYPE_RECORD:
+  case MTI_TYPE_RECORD: // Record type
   {
     int i;
     mtiVariableIdT *elem_list;
     mtiInt32T num_elems;
+    /*
+    mti_GetVarSubelements() returns an array containing the variable IDs of the subelements of the specified VHDL composite variable. If the buffer parameter is NULL, mti_GetVarSubelements() allocates memory for the array and returns a pointer to it. The caller is responsible for freeing this memory with mti_VsimFree(). If the buffer parameter is not NULL, then mti_GetVarSubelements() copies the subelement variable IDs into the buffer and also returns the buffer parameter. The length for the buffer parameter and the return value can be determined by calling mti_TickLength() on the type of the variable_id.
+    mti_GetVarSubelements() returns NULL if the variable_id parameter is not a handle to a VHDL composite variable.
+    The internal representation of multi-dimensional arrays is the same as arrays of arrays. For example, array a(x,y,z) is accessed in the same manner as a(x)(y)(z). In order to get to the scalar subelements of an array of arrays, you must use mti_GetVarSubelements() on each level of the array until reaching the scalar subelements.
+    TODO Should this be used with multi-dimensional arrays or can we use the MTI_TYPE_ARRAY style?
+    */
     elem_list = mti_GetVarSubelements(varid, 0);
-    num_elems = mti_GetNumRecordElements(vartype);
+    num_elems = mti_GetNumRecordElements(vartype); // returns the number of subelements in the specified VHDL record type.
     mti_PrintFormatted("\n");
     for (i = 0; i < num_elems; i++)
     {
@@ -122,20 +157,23 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     mti_VsimFree(elem_list);
   }
   break;
-  case MTI_TYPE_REAL:
+  case MTI_TYPE_REAL: // Real type
   {
     double real_val;
+    /*
+    mti_GetVarValueIndirect() returns the value of a variable of any type except record. mti_GetVarValueIndirect() must be used for scalar variables of type real and time.
+    If the buffer parameter is NULL, mti_GetVarValueIndirect() returns a pointer to the value, which must be treated as read-only data and must not be freed.
+    If the buffer parameter is not NULL, mti_GetVarValueIndirect() copies the value in the buffer parameter and also returns the buffer parameter.
+    */
     mti_GetVarValueIndirect(varid, &real_val);
     mti_PrintFormatted("  %g\n", real_val);
   }
   break;
-  case MTI_TYPE_TIME:
+  case MTI_TYPE_TIME: // Time type
   {
     mtiTime64T time_val;
     mti_GetVarValueIndirect(varid, &time_val);
-    mti_PrintFormatted("  [%d,%d]\n",
-                       MTI_TIME64_HI32(time_val),
-                       MTI_TIME64_LO32(time_val));
+    mti_PrintFormatted("  [%d,%d]\n", MTI_TIME64_HI32(time_val), MTI_TIME64_LO32(time_val));
   }
   break;
   default:
@@ -149,6 +187,9 @@ static void checkValues(void *inst_info)
   instanceInfoT *inst_data = (instanceInfoT *)inst_info;
   varInfoT *varinfo;
 
+  // mti_NowUpper Gets the high order 32 bits of the 64-bit current simulation time.
+  // mti_Now      Gets the low order 32 bits of the 64-bit current simulation time.
+  // Returns mtiInt32T
   mti_PrintFormatted("Time [%d,%d]:\n", mti_NowUpper(), mti_Now());
 
   for (varinfo = inst_data->var_info; varinfo; varinfo = varinfo->next)
@@ -267,6 +308,28 @@ static void initInstance(void *param)
   */
   mti_ScheduleWakeup(inst_data->proc, 6);
 }
+
+/*
+
+  If we require to work with signals:
+
+  static void initInstance( void * param )
+{
+  mtiSignalIdT sigid;
+  mtiTypeIdT   typeid;
+
+  mti_PrintMessage( "Design Signals:\n" );
+  for ( sigid = mti_FirstSignal( mti_GetTopRegion() );
+        sigid; sigid = mti_NextSignal() ) {
+    typeid = mti_GetSignalType( sigid );
+    mti_PrintFormatted( "%14s: type %-12s; length = %d\n",
+                       mti_GetSignalName( sigid ), getTypeStr( typeid ),
+                       mti_TickLength( typeid ));
+  }
+}
+
+
+*/
 
 // Main function that links to an architecture
 void initForeign(
