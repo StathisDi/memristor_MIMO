@@ -1,4 +1,5 @@
 #include <mti.h>
+#include "util.h"
 
 typedef struct varInfoT_tag
 {
@@ -16,10 +17,8 @@ typedef struct
   mtiSignalIdT rst_id;
   mtiSignalIdT int_array_id;
   mtiSignalIdT ret_array_id;
+
   // Signal Drivers
-  mtiDriverIdT clk_drv;
-  mtiDriverIdT rst_drv;
-  mtiDriverIdT int_array_drv;
   mtiDriverIdT ret_array_drv;
 
   // Signal values
@@ -34,81 +33,26 @@ typedef struct
 
 } instanceInfoT;
 
-#define NS_EXPONENT -9
-
-mtiDelayT convertToNS(mtiDelayT delay)
+static void compute_out_value(void *param)
 {
-  int exp = NS_EXPONENT - mti_GetResolutionLimit();
-
-  if (exp < 0)
-  {
-    /* Simulator resolution limit is coarser than ns.     */
-    /* Cannot represent delay accurately, so truncate it. */
-    while (exp++)
-    {
-      delay /= 10;
-    }
-  }
-  else
-  {
-    /* Simulator resolution limit is finer than ns. */
-    while (exp--)
-    {
-      delay *= 10;
-    }
-  }
-  return delay;
-}
-
-static void print_array(mtiSignalIdT sigid, mtiTypeIdT sigtype)
-{
+  instanceInfoT *inst = (instanceInfoT *)param;
   int i;
   mtiInt32T num_elems;
 
-  void *array_val;
-
-  array_val = mti_GetArraySignalValue(sigid, 0);
-  num_elems = mti_TickLength(sigtype);
-
-  mtiInt32T *val = (mtiInt32T *)array_val;
+  inst->int_array_value = mti_GetArraySignalValue(inst->int_array_id, 0);
+  num_elems = inst->int_value_length;
+  mti_PrintFormatted("\nEdit function ");
+  mtiInt32T *val;
+  val = (mtiInt32T *)inst->int_array_value;
+  mtiInt32T *ret;
+  ret = (mtiInt32T *)inst->ret_array_value;
   for (i = 0; i < num_elems; i++)
   {
-    mti_PrintFormatted("  %d", val[i]);
+    ret[i] = val[i] + 5;
   }
-  mti_VsimFree(array_val);
-}
-
-static void printSignalInfo(mtiSignalIdT sigid)
-{
-  mtiTypeIdT sigtype;
-  sigtype = mti_GetSignalType(sigid);
-  switch (mti_GetTypeKind(sigtype))
-  {
-  case MTI_TYPE_SCALAR:
-    mti_PrintFormatted("is of type INTEGER\n");
-    break;
-  case MTI_TYPE_ENUM:
-    mti_PrintFormatted("is of type ENUMERATION\n");
-    break;
-  case MTI_TYPE_PHYSICAL:
-    mti_PrintFormatted("is of type PHYSICAL\n");
-    break;
-  case MTI_TYPE_REAL:
-    mti_PrintFormatted("is of type REAL\n");
-    break;
-  case MTI_TYPE_TIME:
-    mti_PrintFormatted("is of type TIME\n");
-    break;
-  case MTI_TYPE_ARRAY:
-    mti_PrintFormatted("is of type ARRAY\n");
-    break;
-  case MTI_TYPE_RECORD:
-    mti_PrintFormatted("is of type RECORD\n");
-    break;
-  default:
-    mti_PrintFormatted("is of type UNKNOWN\n");
-    break;
-  }
+  print_int_array(inst->ret_array_id, mti_GetSignalType(inst->ret_array_id));
+  mti_ScheduleDriver(inst->ret_array_drv, (long)inst->ret_array_value, convertToNS(0), MTI_INERTIAL);
+  mti_PrintFormatted("Signals are updated \n ");
 }
 
 // Function sensitive to clock
@@ -119,18 +63,20 @@ static void clock_proc(void *param)
   mti_PrintFormatted("Function called in [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
   mtiInt32T scalar_val;
   scalar_val = mti_GetSignalValue(inst->rst_id);
-  if (scalar_val == 2)
+  if (scalar_val == STD_LOGIC_0)
   {
     mti_PrintFormatted("Function called in (rst0) [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
   }
   else
   {
-    mtiInt32T clk_val;
-    clk_val = mti_GetSignalValue(inst->clk_id);
-    if (clk_val == 3)
+    // mtiInt32T clk_val;
+    // clk_val = mti_GetSignalValue(inst->clk_id);
+    inst->clk_value = to_std_logic(mti_GetSignalValue(inst->clk_id));
+    if (to_std_logic(inst->clk_value) == STD_LOGIC_1)
     {
       mti_PrintFormatted("Time [%d,%d]:", mti_NowUpper(), mti_Now());
-      print_array(inst->int_array_id, mti_GetSignalType(inst->int_array_id));
+      print_int_array(inst->int_array_id, mti_GetSignalType(inst->int_array_id));
+      compute_out_value(inst);
       mti_PrintFormatted("\n");
     }
   }
@@ -143,27 +89,17 @@ void cleanupCallback(void *param)
   mti_Free(param);
 }
 
-/*
-
-  If we require to work with signals:
-
-  static void initInstance( void * param )
+void loadDoneCallback(void *param)
 {
-  mtiSignalIdT sigid;
-  mtiTypeIdT   typeid;
+  instanceInfoT *inst = (instanceInfoT *)param;
 
-  mti_PrintMessage( "Design Signals:\n" );
-  for ( sigid = mti_FirstSignal( mti_GetTopRegion() );
-        sigid; sigid = mti_NextSignal() ) {
-    typeid = mti_GetSignalType( sigid );
-    mti_PrintFormatted( "%14s: type %-12s; length = %d\n",
-                       mti_GetSignalName( sigid ), getTypeStr( typeid ),
-                       mti_TickLength( typeid ));
-  }
+  inst->clk_value = mti_GetSignalValue(inst->clk_id);
+  inst->rst_value = mti_GetSignalValue(inst->rst_id);
+  inst->int_array_value = mti_GetArraySignalValue(inst->int_array_id, 0);
+  inst->ret_array_value = mti_GetArraySignalValue(inst->ret_array_id, 0);
+  inst->int_value_length = mti_TickLength(mti_GetSignalType(inst->int_array_id));
+  inst->ret_value_length = mti_TickLength(mti_GetSignalType(inst->ret_array_id));
 }
-
-
-*/
 
 // Main function that links to an architecture
 extern "C" void initForeign(
@@ -187,9 +123,12 @@ extern "C" void initForeign(
   inst->int_array_id = mti_FindSignal("/top_array/int_array");
   inst->ret_array_id = mti_FindSignal("/top_array/ret_array");
 
+  inst->ret_array_drv = mti_CreateDriver(inst->ret_array_id);
+
   procid = mti_CreateProcess("clock_proc", clock_proc, inst);
   mti_Sensitize(procid, inst->clk_id, MTI_EVENT);
 
+  mti_AddLoadDoneCB(loadDoneCallback, inst);
   mti_AddQuitCB(cleanupCallback, inst);
   mti_AddRestartCB(cleanupCallback, inst);
 }
