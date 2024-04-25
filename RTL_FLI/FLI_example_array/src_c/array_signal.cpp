@@ -1,5 +1,6 @@
 #include <mti.h>
 #include "util.h"
+#include <Python.h>
 
 typedef struct varInfoT_tag
 {
@@ -31,6 +32,9 @@ typedef struct
   mtiInt32T int_value_length;
   mtiInt32T ret_value_length;
 
+  // Python module
+  PyObject *myModule;
+
 } instanceInfoT;
 
 static void compute_out_value(void *param)
@@ -55,10 +59,66 @@ static void compute_out_value(void *param)
   mti_PrintFormatted("Signals are updated \n ");
 }
 
+static int call_py()
+{
+  mti_PrintFormatted("\t\t !!!! Calling python Function !!!! [%d,%d] \n", mti_NowUpper(), mti_Now());
+
+  PyObject *sysPath = PySys_GetObject("path");
+  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_example_array/src_c"));
+
+  PyObject *myModuleString = PyUnicode_FromString("accumulate");
+  PyObject *myModule = PyImport_Import(myModuleString);
+  if (myModule != NULL)
+  {
+    // Python module found, setup the function
+    PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"accumulate");
+    // Setup the parameters for the function
+    PyObject *pArgs = PyTuple_New(1);
+    int input_value = 1;
+    PyObject *pValue0 = PyLong_FromLong(input_value);
+    // PyObject *pValue1 = PyLong_FromLong(1);
+    PyTuple_SetItem(pArgs, 0, pValue0);
+    // PyTuple_SetItem(pArgs, 1, pValue1);
+
+    // If function exists call the function
+    if (pFunc != NULL)
+    {
+      mti_PrintFormatted("\t\t Calling Py Function with args.\n");
+      PyObject *pResult = PyObject_CallObject(pFunc, pArgs);
+      if (pResult != NULL)
+      {
+        // Convert the result back to C++ int
+        int result = PyLong_AsLong(pResult);
+        return result; // Return the result of the Python function
+      }
+      else
+      {
+        mti_PrintFormatted("Function call failed.\n");
+        exit(-1);
+      }
+    }
+    else
+    {
+      mti_PrintFormatted("Couldn't find function\n");
+      exit(-1);
+    }
+  }
+  else
+  {
+    mti_PrintFormatted("Python Module not found\n");
+    exit(-1);
+  }
+}
+
 // Function sensitive to clock
 static void clock_proc(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
+  int x = -1;
+  x = call_py();
+  mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
+  // Py_Finalize();
+
   // check for the reset value
   mti_PrintFormatted("Function called in [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
   mtiInt32T scalar_val;
@@ -86,6 +146,7 @@ static void clock_proc(void *param)
 void cleanupCallback(void *param)
 {
   mti_PrintMessage("Cleaning up...\n");
+  Py_Finalize();
   mti_Free(param);
 }
 
@@ -116,7 +177,6 @@ extern "C" void initForeign(
   mtiProcessIdT procid;
 
   inst = (instanceInfoT *)mti_Malloc(sizeof(instanceInfoT));
-
   // Get id of the signals
   inst->clk_id = mti_FindSignal("/top_array/clk");
   inst->rst_id = mti_FindSignal("/top_array/rst");
@@ -124,7 +184,25 @@ extern "C" void initForeign(
   inst->ret_array_id = mti_FindSignal("/top_array/ret_array");
 
   inst->ret_array_drv = mti_CreateDriver(inst->ret_array_id);
+  Py_Initialize();
+  /*
+    Py_Initialize();
 
+    PyObject *sysPath = PySys_GetObject("path");
+    PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_example_array/src_c"));
+
+    PyObject *myModuleString = PyUnicode_FromString("accumulate");
+    PyObject *myModule = PyImport_Import(myModuleString);
+    if (myModule != NULL)
+    {
+      inst->myModule = myModule;
+    }
+    else
+    {
+      mti_PrintFormatted("Python Module not found\n");
+      exit(-1);
+    }
+  */
   procid = mti_CreateProcess("clock_proc", clock_proc, inst);
   mti_Sensitize(procid, inst->clk_id, MTI_EVENT);
 
