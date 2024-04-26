@@ -1,8 +1,8 @@
 # Example Tcl script for QuestaSim
 
 # Set the source file path and the file name
-set source_path "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_example_array/src_c/make"
-set file_name "array_signal.dll"
+set source_path "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/make"
+set file_name "MTI_frontend.dll"
 set top_name "work.top_array"
 
 # Set the full source file path

@@ -9,6 +9,7 @@ param(
   [string]$HostArch = "amd64",
   [string]$Out = "null",
   [string]$Func = "null",
+  [string]$Dopt = "",
   [switch]$Help,
   [switch]$Py,
   [switch]$Cpp,
@@ -28,6 +29,7 @@ function Show_Help {
   "[string] -HostArch : Specifies the host architecture, default is amd64."
   "[string] -Out      : Specifies the name of the output file name. Default is the same as the input source file name .dll."
   "[string] -Func     : Specifies the name of the foreign function. Default is the same as the input source file name."
+  "[string] -Dopt     : Specifies custom options that can be used during compilation, for example defining /D (Preprocessor Definitions), e.g. -Dopt /D'PY_NAME=`"Hello, World3`"'. Make sure that you specify the complete string including options such as /D"
   "[switch] -Help     : Displays this help message."
   "[switch] -Clean    : Deletes all generated files instead of compiling."
   "[switch] -Py       : Compiles and links with Python libraries, when specified it requires a valid python path."
@@ -58,6 +60,7 @@ function Compile {
     [string]$HostArch,
     [string]$Out,
     [string]$Func,
+    [string]$Dopt,
     [boolean]$Py,
     [boolean]$Cpp
   )
@@ -86,11 +89,11 @@ function Compile {
   if ($Py) {
     if ($Cpp) {
       Write-Output "Compiling C++ with Python"
-      cl /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
+      & $Compiler $Dopt /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
     }
     else {
       Write-Output "Compiling QS with Python"
-      & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
+      & $Compiler -c $Dopt /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #& link -DLL -export:py_init $name".obj" $linkModelSimLib $linkPythonLib /out:py_init.dll
       #& link -DLL -export:py_fin $name".obj" $linkModelSimLib $linkPythonLib /out:py_fin.dll
@@ -101,11 +104,11 @@ function Compile {
   else {
     if ($Cpp) {
       Write-Output "Compiling simple c++"
-      cl /EHsc $cppStandard $SrcFile
+      & $Compiler $Dopt /EHsc $cppStandard $SrcFile
     }
     else {
       Write-Output "Compiling QS"
-      & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile 
+      & $Compiler -c $Dopt /EHsc /I$includeModelSim /LD $SrcFile 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib /out:$Out
     }
   }
@@ -124,7 +127,7 @@ if ($clean) {
   Clean_Up
 }
 else {
-  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -DevShell $DevShell -Arch $Arch -HostArch $HostArch -Out $Out -Func $Func -Py $Py -Cpp $Cpp
+  Compile -QSPath $QSPath -PyPath $PyPath -Compiler $Compiler -SrcFile $SrcFile -DevShell $DevShell -Arch $Arch -HostArch $HostArch -Out $Out -Func $Func -Dopt $Dopt -Py $Py -Cpp $Cpp
 }
 
 

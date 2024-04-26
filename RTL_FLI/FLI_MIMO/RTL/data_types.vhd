@@ -1,0 +1,7 @@
+LIBRARY ieee, work;
+USE ieee.std_logic_1164.ALL;
+
+PACKAGE data_types IS
+  TYPE int_array_ty IS ARRAY (NATURAL RANGE <>) OF INTEGER;
+  TYPE int_2d_array_ty IS ARRAY (NATURAL RANGE <>, NATURAL RANGE <>) OF INTEGER;
+END PACKAGE;

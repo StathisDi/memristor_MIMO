@@ -32,7 +32,7 @@ int call_increment_function(int input_value, int x)
   // Setup the path
   py_init(0);
   PyObject *sysPath = PySys_GetObject("path");
-  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_example/src_c"));
+  PyList_Append(sysPath, PyUnicode_FromString("Define Path"));
   // exit(0);
   //  Setup the module
   PyObject *myModuleString = PyUnicode_FromString("process_integer");

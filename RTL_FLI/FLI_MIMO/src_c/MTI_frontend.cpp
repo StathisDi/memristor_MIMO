@@ -1,12 +1,11 @@
 #include <mti.h>
 #include "util.h"
 #include <Python.h>
-
 #ifndef PY_PATH
-#define PY_PATH "<set your path to the python script>"
+#define PY_PATH "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/src_c"
 #endif
 #ifndef PY_NAME
-#define PY_NAME "accumulate"
+#define PY_NAME ""
 #endif
 
 typedef struct varInfoT_tag
@@ -61,7 +60,7 @@ static void compute_out_value(void *param)
   {
     ret[i] = val[i] + 5;
   }
-  print_int_array(inst->ret_array_id, mti_GetSignalType(inst->ret_array_id));
+  printIntArray(inst->ret_array_id, mti_GetSignalType(inst->ret_array_id));
   mti_ScheduleDriver(inst->ret_array_drv, (long)inst->ret_array_value, convertToNS(0), MTI_INERTIAL);
   mti_PrintFormatted("Signals are updated \n ");
 }
@@ -79,7 +78,7 @@ static int inc_py(PyObject *myModule)
     PyObject *pValue0 = PyLong_FromLong(input_value);
     PyTuple_SetItem(pArgs, 0, pValue0);
     // Convert the result back to C++ int
-    int result = PyLong_AsLong(call_py(pFunc, pArgs));
+    int result = PyLong_AsLong(callPy(pFunc, pArgs));
     return result;
   }
   else
@@ -102,7 +101,7 @@ static int dec_py(PyObject *myModule)
     PyObject *pValue0 = PyLong_FromLong(input_value);
     PyTuple_SetItem(pArgs, 0, pValue0);
     // Convert the result back to C++ int
-    int result = PyLong_AsLong(call_py(pFunc, pArgs));
+    int result = PyLong_AsLong(callPy(pFunc, pArgs));
     return result;
   }
   else
@@ -147,7 +146,7 @@ static void clock_proc(void *param)
     if (to_std_logic(inst->clk_value) == STD_LOGIC_1)
     {
       mti_PrintFormatted("Time [%d,%d]:", mti_NowUpper(), mti_Now());
-      print_int_array(inst->int_array_id, mti_GetSignalType(inst->int_array_id));
+      printIntArray(inst->int_array_id, mti_GetSignalType(inst->int_array_id));
       compute_out_value(inst);
       mti_PrintFormatted("\n");
     }
@@ -197,7 +196,6 @@ extern "C" void initForeign(
 
   inst->ret_array_drv = mti_CreateDriver(inst->ret_array_id);
   Py_Initialize();
-  mti_PrintFormatted("PYPATH: %s\n", PY_PATH);
   PyObject *sysPath = PySys_GetObject("path");
   PyList_Append(sysPath, PyUnicode_FromString(PY_PATH));
   PyObject *myModuleString = PyUnicode_FromString(PY_NAME);
