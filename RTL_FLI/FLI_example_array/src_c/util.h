@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 #include <mti.h>
+#include <Python.h>
 
 typedef enum
 {
@@ -117,6 +118,36 @@ static void printSignalInfo(mtiSignalIdT sigid)
     mti_PrintFormatted("is of type UNKNOWN\n");
     break;
   }
+}
+
+// Calling a python function *pFunc with arguments *pArgs
+// returns PyObject *
+static PyObject *call_py(PyObject *pFunc, PyObject *pArgs)
+{
+  PyObject *pResult = NULL;
+  // If function exists call the function
+  if (pFunc != NULL)
+  {
+    mti_PrintFormatted("\t\t Calling Py Function with args.\n");
+    pResult = PyObject_CallObject(pFunc, pArgs);
+    if (pResult != NULL)
+    {
+      // Convert the result back to C++ int
+      // int result = PyLong_AsLong(pResult);
+      return pResult; // Return the result of the Python function
+    }
+    else
+    {
+      mti_PrintFormatted("Function call failed.\n");
+      mti_FatalError();
+    }
+  }
+  else
+  {
+    mti_PrintFormatted("Couldn't find function\n");
+    mti_FatalError();
+  }
+  return pResult;
 }
 
 #endif

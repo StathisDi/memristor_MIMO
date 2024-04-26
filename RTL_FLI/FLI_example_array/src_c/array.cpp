@@ -143,7 +143,6 @@ static void printValue(mtiVariableIdT varid, mtiTypeIdT vartype, int indent)
     mti_GetVarSubelements() returns an array containing the variable IDs of the subelements of the specified VHDL composite variable. If the buffer parameter is NULL, mti_GetVarSubelements() allocates memory for the array and returns a pointer to it. The caller is responsible for freeing this memory with mti_VsimFree(). If the buffer parameter is not NULL, then mti_GetVarSubelements() copies the subelement variable IDs into the buffer and also returns the buffer parameter. The length for the buffer parameter and the return value can be determined by calling mti_TickLength() on the type of the variable_id.
     mti_GetVarSubelements() returns NULL if the variable_id parameter is not a handle to a VHDL composite variable.
     The internal representation of multi-dimensional arrays is the same as arrays of arrays. For example, array a(x,y,z) is accessed in the same manner as a(x)(y)(z). In order to get to the scalar subelements of an array of arrays, you must use mti_GetVarSubelements() on each level of the array until reaching the scalar subelements.
-    TODO Should this be used with multi-dimensional arrays or can we use the MTI_TYPE_ARRAY style?
     */
     elem_list = mti_GetVarSubelements(varid, 0);
     num_elems = mti_GetNumRecordElements(vartype); // returns the number of subelements in the specified VHDL record type.
