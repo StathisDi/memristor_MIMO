@@ -104,10 +104,25 @@ static void printIntArray(mtiSignalIdT sigid, mtiTypeIdT sigtype)
   mti_VsimFree(array_val);
 }
 
+// Print the values of an int array signal
+static void printArrayLength(mtiSignalIdT sigid)
+{
+  int i;
+  mtiInt32T num_elems;
+
+  mtiTypeIdT sigtype;
+
+  sigtype = mti_GetSignalType(sigid);
+  num_elems = mti_TickLength(sigtype);
+
+  mti_PrintFormatted("Array Size of %s is %d \n", mti_GetSignalName(sigid), num_elems);
+}
+
 // Print the type of the signal
 static void printSignalInfo(mtiSignalIdT sigid)
 {
   mtiTypeIdT sigtype;
+  mti_PrintFormatted("Signal %s ", mti_GetSignalName(sigid));
   sigtype = mti_GetSignalType(sigid);
   switch (mti_GetTypeKind(sigtype))
   {
@@ -138,6 +153,13 @@ static void printSignalInfo(mtiSignalIdT sigid)
   }
 }
 
+// Get subarray of signal
+static void *GetSubArrayVal(mtiSignalIdT sigid)
+{
+  void *array_val;
+  array_val = mti_GetArraySignalValue(sigid, 0);
+  return array_val;
+}
 // Calling a python function *pFunc with arguments *pArgs
 // returns PyObject *
 static PyObject *callPy(PyObject *pFunc, PyObject *pArgs)

@@ -8,41 +8,46 @@
 #define PY_NAME ""
 #endif
 
-typedef struct varInfoT_tag
-{
-  struct varInfoT_tag *next;
-  char *name;
-  mtiSignalIdT varid;
-  mtiTypeIdT type_id; // renamed to type_id to be compatible with c++
-} varInfoT;
-
 typedef struct
 {
   mtiDelayT delay;
-  // Signal IDs
+  // Signal IDs for inputs
   mtiSignalIdT clk_id;
   mtiSignalIdT rst_id;
-  mtiSignalIdT int_array_id;
-  mtiSignalIdT ret_array_id;
+  mtiSignalIdT program_id;
+  mtiSignalIdT compute_id;
+  mtiSignalIdT crossbar_input_prog_id;
+  mtiSignalIdT crossbar_input_comp_id;
+
+  // Signal IDs for outputs
+  mtiSignalIdT crossbar_output_id;
+  mtiSignalIdT crossbar_rdy_id;
 
   // Signal Drivers
-  mtiDriverIdT ret_array_drv;
+  mtiDriverIdT crossbar_output_drv;
+  mtiDriverIdT crossbar_rdy_drv;
 
   // Signal values
-  mtiInt32T clk_value;
-  mtiInt32T rst_value;
-  void *int_array_value;
-  void *ret_array_value;
+  mtiInt32T clk_vlu;
+  mtiInt32T rst_vlu;
+  mtiInt32T program_vlu;
+  mtiInt32T compute_vlu;
+  void *crossbar_input_prog_vlu;
+  void *crossbar_input_comp_vlu;
+  void *crossbar_output_vlu;
+  mtiInt32T crossbar_rdy_vlu;
 
   // Array lengths
-  mtiInt32T int_value_length;
-  mtiInt32T ret_value_length;
+  mtiInt32T crossbar_input_prog_length;
+  mtiInt32T crossbar_input_comp_length;
+  mtiInt32T crossbar_output_length;
 
   // Python module
   PyObject *myModule;
 
 } instanceInfoT;
 
+/*
 static void compute_out_value(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
@@ -110,26 +115,26 @@ static int dec_py(PyObject *myModule)
     mti_FatalError();
   }
 }
-
+*/
 // Function sensitive to clock
 static void clock_proc(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
-  PyObject *myModule = inst->myModule;
-  int x = -1;
-  void *array_val;
-  array_val = mti_GetArraySignalValue(inst->int_array_id, 0);
-  mtiInt32T *val = (mtiInt32T *)array_val;
-  if (val[0] > 5)
-  {
-    x = dec_py(myModule);
-  }
-  else
-  {
-    x = inc_py(myModule);
-  }
-  mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
-
+  /* PyObject *myModule = inst->myModule;
+   int x = -1;
+   void *array_val;
+   array_val = mti_GetArraySignalValue(inst->int_array_id, 0);
+   mtiInt32T *val = (mtiInt32T *)array_val;
+   if (val[0] > 5)
+   {
+     x = dec_py(myModule);
+   }
+   else
+   {
+     x = inc_py(myModule);
+   }
+   mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
+ */
   // check for the reset value
   mti_PrintFormatted("Function called in [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
   mtiInt32T scalar_val;
@@ -142,12 +147,24 @@ static void clock_proc(void *param)
   {
     // mtiInt32T clk_val;
     // clk_val = mti_GetSignalValue(inst->clk_id);
-    inst->clk_value = to_std_logic(mti_GetSignalValue(inst->clk_id));
-    if (to_std_logic(inst->clk_value) == STD_LOGIC_1)
+    inst->clk_vlu = to_std_logic(mti_GetSignalValue(inst->clk_id));
+    if (to_std_logic(inst->clk_vlu) == STD_LOGIC_1)
     {
       mti_PrintFormatted("Time [%d,%d]:", mti_NowUpper(), mti_Now());
-      printIntArray(inst->int_array_id, mti_GetSignalType(inst->int_array_id));
-      compute_out_value(inst);
+      printSignalInfo(inst->crossbar_input_prog_id);
+      printSignalInfo(inst->crossbar_output_id);
+      printSignalInfo(inst->crossbar_input_comp_id);
+      printArrayLength(inst->crossbar_input_prog_id);
+      printArrayLength(inst->crossbar_output_id);
+      printArrayLength(inst->crossbar_input_comp_id);
+      int i;
+      void *array_val;
+      array_val = GetSubArrayVal(inst->crossbar_input_prog_id);
+      for (i = 0; i < inst->crossbar_input_prog_length; i++)
+      {
+        mti_GetSignalSubelements
+      }
+
       mti_PrintFormatted("\n");
     }
   }
@@ -164,13 +181,13 @@ void cleanupCallback(void *param)
 void loadDoneCallback(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
-
-  inst->clk_value = mti_GetSignalValue(inst->clk_id);
-  inst->rst_value = mti_GetSignalValue(inst->rst_id);
-  inst->int_array_value = mti_GetArraySignalValue(inst->int_array_id, 0);
-  inst->ret_array_value = mti_GetArraySignalValue(inst->ret_array_id, 0);
-  inst->int_value_length = mti_TickLength(mti_GetSignalType(inst->int_array_id));
-  inst->ret_value_length = mti_TickLength(mti_GetSignalType(inst->ret_array_id));
+  // Create drivers for the output signals
+  inst->crossbar_rdy_drv = mti_CreateDriver(inst->crossbar_rdy_id);
+  inst->crossbar_output_drv = mti_CreateDriver(inst->crossbar_output_id);
+  // Get lengths of arrays
+  inst->crossbar_input_prog_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_prog_id));
+  inst->crossbar_input_comp_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_comp_id));
+  inst->crossbar_output_length = mti_TickLength(mti_GetSignalType(inst->crossbar_output_id));
 }
 
 // Main function that links to an architecture
@@ -188,19 +205,25 @@ extern "C" void initForeign(
   mtiProcessIdT procid;
 
   inst = (instanceInfoT *)mti_Malloc(sizeof(instanceInfoT));
-  // Get id of the signals
-  inst->clk_id = mti_FindSignal("/top_array/clk");
-  inst->rst_id = mti_FindSignal("/top_array/rst");
-  inst->int_array_id = mti_FindSignal("/top_array/int_array");
-  inst->ret_array_id = mti_FindSignal("/top_array/ret_array");
+  // Get id of the input signals
+  inst->clk_id = mti_FindSignal("/MIMO_TOP/clk");
+  inst->rst_id = mti_FindSignal("/MIMO_TOP/rst_n");
+  inst->program_id = mti_FindSignal("/MIMO_TOP/program");
+  inst->compute_id = mti_FindSignal("/MIMO_TOP/compute");
+  inst->crossbar_input_prog_id = mti_FindSignal("/MIMO_TOP/crossbar_input_prog");
+  inst->crossbar_input_comp_id = mti_FindSignal("/MIMO_TOP/crossbar_input_comp");
 
-  inst->ret_array_drv = mti_CreateDriver(inst->ret_array_id);
-  Py_Initialize();
+  // Get ids of output signals
+  inst->crossbar_rdy_id = mti_FindSignal("/MIMO_TOP/crossbar_rdy");
+  inst->crossbar_output_id = mti_FindSignal("/MIMO_TOP/crossbar_output");
+
+  /*Py_Initialize();
   PyObject *sysPath = PySys_GetObject("path");
   PyList_Append(sysPath, PyUnicode_FromString(PY_PATH));
   PyObject *myModuleString = PyUnicode_FromString(PY_NAME);
   PyObject *myModule = PyImport_Import(myModuleString);
-  inst->myModule = myModule;
+  inst->myModule = myModule;*/
+
   procid = mti_CreateProcess("clock_proc", clock_proc, inst);
 
   mti_Sensitize(procid, inst->clk_id, MTI_EVENT);

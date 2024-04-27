@@ -9,7 +9,7 @@ param(
   [string]$HostArch = "amd64",
   [string]$Out = "null",
   [string]$Func = "null",
-  [string]$Dopt = "",
+  [string]$Dopt = "null",
   [switch]$Help,
   [switch]$Py,
   [switch]$Cpp,
@@ -89,11 +89,19 @@ function Compile {
   if ($Py) {
     if ($Cpp) {
       Write-Output "Compiling C++ with Python"
-      & $Compiler $Dopt /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
+      if ($Dopt -eq "null") {
+        & $Compiler /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
+      }else{
+        & $Compiler $Dopt /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
+      }
     }
     else {
       Write-Output "Compiling QS with Python"
-      & $Compiler -c $Dopt /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
+      if ($Dopt -eq "null") {
+        & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
+      }else{
+        & $Compiler -c $Dopt /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
+      }
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
       #& link -DLL -export:py_init $name".obj" $linkModelSimLib $linkPythonLib /out:py_init.dll
       #& link -DLL -export:py_fin $name".obj" $linkModelSimLib $linkPythonLib /out:py_fin.dll
@@ -104,11 +112,20 @@ function Compile {
   else {
     if ($Cpp) {
       Write-Output "Compiling simple c++"
-      & $Compiler $Dopt /EHsc $cppStandard $SrcFile
+      if ($Dopt -eq "null") {
+        & $Compiler /EHsc $cppStandard $SrcFile
+      }else{
+        & $Compiler $Dopt /EHsc $cppStandard $SrcFile
+      }
+      
     }
     else {
       Write-Output "Compiling QS"
-      & $Compiler -c $Dopt /EHsc /I$includeModelSim /LD $SrcFile 
+      if ($Dopt -eq "null") {
+        & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile
+      }else{
+        & $Compiler -c $Dopt /EHsc /I$includeModelSim /LD $SrcFile
+      } 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib /out:$Out
     }
   }
