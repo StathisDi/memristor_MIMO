@@ -181,6 +181,25 @@ static void print2DInt(mtiSignalIdT sigid, mtiInt32T signal_length)
   mti_VsimFree(elem_list);
 }
 
+// Print the values of a 1D int array
+static void print1DInt(mtiSignalIdT sigid)
+{
+  int i;
+  mtiInt32T *array_val;
+  mtiTypeIdT type;
+  mtiInt32T siglen;
+  array_val = (mtiInt32T *)mti_GetArraySignalValue(sigid, 0);
+  type = mti_GetSignalType(sigid);
+  siglen = mti_TickLength(type);
+  mti_PrintFormatted("Signal 'i' length is %d\n", siglen);
+  for (i = 0; i < siglen; i++)
+  {
+    mti_PrintFormatted("\t\tSignal value of signal %s[%d] = %d\n", mti_GetSignalName(sigid), i, array_val[i]);
+  }
+  mti_VsimFree(array_val);
+  mti_PrintFormatted("\n");
+}
+
 // Calling a python function *pFunc with arguments *pArgs
 // returns PyObject *
 static PyObject *callPy(PyObject *pFunc, PyObject *pArgs)
