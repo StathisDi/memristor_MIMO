@@ -157,15 +157,7 @@ static void clock_proc(void *param)
       printArrayLength(inst->crossbar_input_prog_id);
       printArrayLength(inst->crossbar_output_id);
       printArrayLength(inst->crossbar_input_comp_id);
-      int i;
-      void *array_val;
-      array_val = GetSubArrayVal(inst->crossbar_input_prog_id);
-      for (i = 0; i < inst->crossbar_input_prog_length; i++)
-      {
-        mti_GetSignalSubelements
-      }
-
-      mti_PrintFormatted("\n");
+      print2DInt(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
     }
   }
 }

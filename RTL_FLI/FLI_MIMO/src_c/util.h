@@ -153,13 +153,34 @@ static void printSignalInfo(mtiSignalIdT sigid)
   }
 }
 
-// Get subarray of signal
-static void *GetSubArrayVal(mtiSignalIdT sigid)
+// Print the values of a 2D int array
+static void print2DInt(mtiSignalIdT sigid, mtiInt32T signal_length)
 {
-  void *array_val;
-  array_val = mti_GetArraySignalValue(sigid, 0);
-  return array_val;
+  int i;
+  mtiSignalIdT *elem_list;
+  elem_list = mti_GetSignalSubelements(sigid, 0);
+  mti_PrintFormatted("Signal 'i' length is %d\n", signal_length);
+  for (i = 0; i < signal_length; i++)
+  {
+    int j = 0;
+    mtiInt32T *array_val;
+    mtiTypeIdT type;
+    mtiInt32T siglen;
+    array_val = (mtiInt32T *)mti_GetArraySignalValue(elem_list[i], 0);
+    type = mti_GetSignalType(elem_list[i]);
+    siglen = mti_TickLength(type);
+    mti_PrintFormatted("Signal 'j' length is %d\n", siglen);
+    for (j = 0; j < siglen; j++)
+    {
+      mti_PrintFormatted("\t\tSignal value of signal %s[%d,%d] = %d\n", mti_GetSignalName(sigid), i, j, array_val[j]);
+    }
+    mti_VsimFree(array_val);
+  }
+  mti_PrintFormatted("\n");
+  // Free memory
+  mti_VsimFree(elem_list);
 }
+
 // Calling a python function *pFunc with arguments *pArgs
 // returns PyObject *
 static PyObject *callPy(PyObject *pFunc, PyObject *pArgs)
