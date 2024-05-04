@@ -11,6 +11,8 @@
 typedef struct
 {
   mtiDelayT delay;
+  // Drive process id
+  mtiProcessIdT procid;
   // Signal IDs for inputs
   mtiSignalIdT clk_id;
   mtiSignalIdT rst_id;
@@ -159,6 +161,16 @@ static void clock_proc(void *param)
       printArrayLength(inst->crossbar_input_comp_id);
       print2DInt(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
       print1DInt(inst->crossbar_input_comp_id);
+      mtiInt32T *val;
+      mtiInt32T tmp_val[2];
+      int i;
+      for (i = 0; i < 2; i++)
+      {
+        tmp_val[i] = i * 2 + 2;
+      }
+      val = tmp_val;
+      drive1DInt(inst->crossbar_output_drv, (void *)val);
+      // mti_VsimFree(val);
     }
   }
 }
@@ -176,7 +188,18 @@ void loadDoneCallback(void *param)
   instanceInfoT *inst = (instanceInfoT *)param;
   // Create drivers for the output signals
   inst->crossbar_rdy_drv = mti_CreateDriver(inst->crossbar_rdy_id);
+  mti_SetDriverOwner(inst->crossbar_rdy_drv, inst->procid);
   inst->crossbar_output_drv = mti_CreateDriver(inst->crossbar_output_id);
+  mti_SetDriverOwner(inst->crossbar_output_drv, inst->procid);
+  mtiInt32T *val;
+  mtiInt32T tmp_val[2];
+  int i;
+  for (i = 0; i < 2; i++)
+  {
+    tmp_val[i] = i * 2 + 2;
+  }
+  val = tmp_val;
+  drive1DInt(inst->crossbar_output_drv, (void *)val);
   // Get lengths of arrays
   inst->crossbar_input_prog_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_prog_id));
   inst->crossbar_input_comp_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_comp_id));
@@ -218,7 +241,7 @@ extern "C" void initForeign(
   inst->myModule = myModule;*/
 
   procid = mti_CreateProcess("clock_proc", clock_proc, inst);
-
+  inst->procid = procid;
   mti_Sensitize(procid, inst->clk_id, MTI_EVENT);
 
   mti_AddLoadDoneCB(loadDoneCallback, inst);
