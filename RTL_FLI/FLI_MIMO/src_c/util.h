@@ -200,11 +200,12 @@ static void print1DInt(mtiSignalIdT sigid)
   mti_PrintFormatted("\n");
 }
 
-// Assign values in a 1D int VHDL array
-static void drive1DInt(mtiDriverIdT sigid, void *val)
+// Assign values in up to 1D VHDL array
+static void driveSig(mtiDriverIdT sigid, void *val)
 {
-  mti_ScheduleDriver(sigid, (mtiLongT)val, convertToNS(1), MTI_TRANSPORT);
+  mti_ScheduleDriver(sigid, (mtiLongT)val, convertToNS(0), MTI_TRANSPORT);
 }
+
 // Calling a python function *pFunc with arguments *pArgs
 // returns PyObject *
 static PyObject *callPy(PyObject *pFunc, PyObject *pArgs)

@@ -13,7 +13,7 @@ ARCHITECTURE sim OF MIMO_TOP IS
 
   SIGNAL clk                 : STD_LOGIC := '0';
   SIGNAL rst_n               : STD_LOGIC := '0';
-  SIGNAL start               : STD_LOGIC; -- Start a single program and computer round
+  SIGNAL start               : STD_LOGIC := '0'; -- Start a single program and computer round
   SIGNAL crossbar_rdy        : STD_LOGIC;
   SIGNAL program             : STD_LOGIC;
   SIGNAL compute             : STD_LOGIC;
@@ -49,6 +49,7 @@ BEGIN
 
   clk   <= NOT clk AFTER 5 ns;
   rst_n <= '1' AFTER 3 ns;
+  start <= '1' AFTER 10 ns;
   P_reg : PROCESS (clk, rst_n)
   BEGIN
     IF rst_n = '0' THEN
@@ -58,4 +59,5 @@ BEGIN
       END IF;
     END IF;
   END PROCESS;
+
 END sim;

@@ -8,6 +8,14 @@
 #define PY_NAME ""
 #endif
 
+#ifndef CRB_COL
+#define CRB_COL 2
+#endif
+
+#ifndef CRB_ROW
+#define CRB_ROW 3
+#endif
+
 typedef struct
 {
   mtiDelayT delay;
@@ -118,24 +126,50 @@ static int dec_py(PyObject *myModule)
   }
 }
 */
+
+// Program the crossbar
+static void program(void *param)
+{
+  instanceInfoT *inst = (instanceInfoT *)param;
+  mti_PrintFormatted("[Program]\tCrossbar is programmed with the following values: \n");
+  print2DInt(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
+}
+
+// Compute using the crossbar
+static void compute(void *param)
+{
+  instanceInfoT *inst = (instanceInfoT *)param;
+  mti_PrintFormatted("[Compute]\tCrossbar is computing with the following values: \n");
+  print1DInt(inst->crossbar_input_comp_id);
+  mtiInt32T *val;
+  mtiInt32T tmp_val[CRB_COL];
+  int i;
+  for (i = 0; i < CRB_COL; i++)
+  {
+    tmp_val[i] = i * 2 + 2;
+  }
+  val = tmp_val;
+  driveSig(inst->crossbar_output_drv, (void *)val);
+}
+
 // Function sensitive to clock
 static void clock_proc(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
   /* PyObject *myModule = inst->myModule;
-   int x = -1;
-   void *array_val;
-   array_val = mti_GetArraySignalValue(inst->int_array_id, 0);
-   mtiInt32T *val = (mtiInt32T *)array_val;
-   if (val[0] > 5)
-   {
-     x = dec_py(myModule);
-   }
-   else
-   {
-     x = inc_py(myModule);
-   }
-   mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
+  int x = -1;
+  void *array_val;
+  array_val = mti_GetArraySignalValue(inst->int_array_id, 0);
+  mtiInt32T *val = (mtiInt32T *)array_val;
+  if (val[0] > 5)
+  {
+    x = dec_py(myModule);
+  }
+  else
+  {
+    x = inc_py(myModule);
+  }
+  mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
  */
   // check for the reset value
   mti_PrintFormatted("Function called in [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
@@ -144,33 +178,46 @@ static void clock_proc(void *param)
   if (scalar_val == STD_LOGIC_0)
   {
     mti_PrintFormatted("Function called in (rst0) [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
+    mtiInt32T rdy = STD_LOGIC_1;
+    mti_ScheduleDriver(inst->crossbar_rdy_drv, rdy, convertToNS(0), MTI_TRANSPORT);
   }
   else
   {
-    // mtiInt32T clk_val;
-    // clk_val = mti_GetSignalValue(inst->clk_id);
     inst->clk_vlu = to_std_logic(mti_GetSignalValue(inst->clk_id));
     if (to_std_logic(inst->clk_vlu) == STD_LOGIC_1)
     {
-      mti_PrintFormatted("Time [%d,%d]:", mti_NowUpper(), mti_Now());
-      printSignalInfo(inst->crossbar_input_prog_id);
-      printSignalInfo(inst->crossbar_output_id);
-      printSignalInfo(inst->crossbar_input_comp_id);
-      printArrayLength(inst->crossbar_input_prog_id);
-      printArrayLength(inst->crossbar_output_id);
-      printArrayLength(inst->crossbar_input_comp_id);
-      print2DInt(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
-      print1DInt(inst->crossbar_input_comp_id);
-      mtiInt32T *val;
-      mtiInt32T tmp_val[2];
-      int i;
-      for (i = 0; i < 2; i++)
+      mti_PrintFormatted("Time [%d,%d] Proccess is triggered!\n", mti_NowUpper(), mti_Now());
+      inst->crossbar_rdy_vlu = STD_LOGIC_1;
+      inst->program_vlu = mti_GetSignalValue(inst->program_id);
+      inst->compute_vlu = mti_GetSignalValue(inst->compute_id);
+      mti_PrintFormatted("program %d, compute %d\n", inst->program_vlu, inst->compute_vlu);
+      mti_PrintFormatted("program %s, compute %s\n", mti_GetSignalName(inst->program_id), mti_GetSignalName(inst->compute_id));
+      mti_PrintFormatted("program %s, compute %s\n", mti_GetRegionFullName(mti_GetSignalRegion(inst->program_id)), mti_GetRegionFullName(mti_GetSignalRegion(inst->compute_id)));
+
+      if (inst->compute_vlu == STD_LOGIC_1)
       {
-        tmp_val[i] = i * 2 + 2;
+        if (inst->program_vlu == STD_LOGIC_1)
+        {
+          mti_PrintFormatted("program %d, compute %d\n", inst->program_vlu, inst->compute_vlu);
+          mti_PrintFormatted("\t\t!ERROR! Both program and compute signals active at the same time!\n");
+          // mti_FatalError();
+        }
+        inst->crossbar_rdy_vlu = STD_LOGIC_0;
+        compute(inst);
       }
-      val = tmp_val;
-      drive1DInt(inst->crossbar_output_drv, (void *)val);
-      // mti_VsimFree(val);
+      else
+      {
+        if (inst->program_vlu == STD_LOGIC_1)
+        {
+          program(inst);
+          inst->crossbar_rdy_vlu = STD_LOGIC_0;
+        }
+        else
+        {
+          inst->crossbar_rdy_vlu = STD_LOGIC_1;
+        }
+      }
+      mti_ScheduleDriver(inst->crossbar_rdy_drv, inst->crossbar_rdy_vlu, convertToNS(0), MTI_TRANSPORT);
     }
   }
 }
@@ -192,15 +239,17 @@ void loadDoneCallback(void *param)
   inst->crossbar_output_drv = mti_CreateDriver(inst->crossbar_output_id);
   mti_SetDriverOwner(inst->crossbar_output_drv, inst->procid);
   mtiInt32T *val;
-  mtiInt32T tmp_val[2];
+  mtiInt32T tmp_val[CRB_COL];
   int i;
-  for (i = 0; i < 2; i++)
+  for (i = 0; i < CRB_COL; i++)
   {
-    tmp_val[i] = i * 2 + 2;
+    tmp_val[i] = 0;
   }
   val = tmp_val;
-  drive1DInt(inst->crossbar_output_drv, (void *)val);
-  // Get lengths of arrays
+  driveSig(inst->crossbar_output_drv, (void *)val);
+  mtiInt32T rdy = STD_LOGIC_0;
+  mti_ScheduleDriver(inst->crossbar_rdy_drv, rdy, convertToNS(0), MTI_TRANSPORT);
+  //  Get lengths of arrays
   inst->crossbar_input_prog_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_prog_id));
   inst->crossbar_input_comp_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_comp_id));
   inst->crossbar_output_length = mti_TickLength(mti_GetSignalType(inst->crossbar_output_id));

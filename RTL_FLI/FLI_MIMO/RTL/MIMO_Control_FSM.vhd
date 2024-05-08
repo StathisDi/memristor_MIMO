@@ -19,9 +19,9 @@ ENTITY MIMO_Control_FSM IS
 END ENTITY;
 
 ARCHITECTURE FSM OF MIMO_Control_FSM IS
-  TYPE STATE_ty IS (IDLE, PROG, COMP, WAIT_RDY); --!
-  SIGNAL state   : STATE_ty;
-  SIGNAL counter : INTEGER;
+  TYPE STATE_ty IS (IDLE, PROG, COMP, DONE_ST, WAIT_RDY); --!
+  SIGNAL state, last_state : STATE_ty;
+  SIGNAL counter           : INTEGER;
 BEGIN
 
   P_reg : PROCESS (clk, rst_n)
@@ -34,6 +34,7 @@ BEGIN
       counter             <= 0;
       compute             <= '0';
       done                <= '0';
+      last_state          <= IDLE;
     ELSIF rising_edge(clk) THEN
       program             <= '0';
       crossbar_input_prog <= (OTHERS => (OTHERS => 0));
@@ -42,10 +43,12 @@ BEGIN
       done                <= '0';
       CASE state IS
         WHEN IDLE =>
+          last_state <= IDLE;
           IF (start = '1') THEN
             state <= WAIT_RDY;
           END IF;
         WHEN PROG =>
+          last_state <= PROG;
           IF (counter = crossbar_rows - 1) THEN
             program             <= '0';
             counter             <= 0;
@@ -61,15 +64,20 @@ BEGIN
             crossbar_input_prog <= program_val;
           END IF;
         WHEN COMP =>
+          last_state          <= COMP;
           compute             <= '1';
           crossbar_input_comp <= compute_val;
-          state               <= IDLE;
-          done                <= '1';
+          IF crossbar_rdy = '1' THEN
+            state <= DONE_ST;
+          END IF;
+        WHEN DONE_ST =>
+          state <= IDLE;
+          done  <= '1';
         WHEN WAIT_RDY =>
           IF (crossbar_rdy = '1') THEN
-            IF (state = IDLE) THEN
+            IF (last_state = IDLE) THEN
               state <= PROG;
-            ELSIF (state = PROG) THEN
+            ELSIF (last_state = PROG) THEN
               state <= COMP;
             END IF;
           ELSE
