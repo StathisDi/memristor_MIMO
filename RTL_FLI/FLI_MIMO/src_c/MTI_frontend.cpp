@@ -1,11 +1,12 @@
 #include <mti.h>
 #include "util.h"
 #include <Python.h>
+
 #ifndef PY_PATH
 #define PY_PATH "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/src_c"
 #endif
 #ifndef PY_NAME
-#define PY_NAME ""
+#define PY_NAME "test"
 #endif
 
 #ifndef CRB_COL
@@ -57,82 +58,71 @@ typedef struct
 
 } instanceInfoT;
 
-/*
-static void compute_out_value(void *param)
-{
-  instanceInfoT *inst = (instanceInfoT *)param;
-  int i;
-  mtiInt32T num_elems;
-
-  inst->int_array_value = mti_GetArraySignalValue(inst->int_array_id, 0);
-  num_elems = inst->int_value_length;
-  mti_PrintFormatted("\nEdit function ");
-  mtiInt32T *val;
-  val = (mtiInt32T *)inst->int_array_value;
-  mtiInt32T *ret;
-  ret = (mtiInt32T *)inst->ret_array_value;
-  for (i = 0; i < num_elems; i++)
-  {
-    ret[i] = val[i] + 5;
-  }
-  printIntArray(inst->ret_array_id, mti_GetSignalType(inst->ret_array_id));
-  mti_ScheduleDriver(inst->ret_array_drv, (long)inst->ret_array_value, convertToNS(0), MTI_INERTIAL);
-  mti_PrintFormatted("Signals are updated \n ");
-}
-
-static int inc_py(PyObject *myModule)
-{
-  mti_PrintFormatted("\t\t !!!! Calling python Function !!!! [%d,%d] \n", mti_NowUpper(), mti_Now());
-  if (myModule != NULL)
-  {
-    // Python module found, setup the function
-    PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"accumulate");
-    // Setup the parameters for the function
-    PyObject *pArgs = PyTuple_New(1);
-    int input_value = 1;
-    PyObject *pValue0 = PyLong_FromLong(input_value);
-    PyTuple_SetItem(pArgs, 0, pValue0);
-    // Convert the result back to C++ int
-    int result = PyLong_AsLong(callPy(pFunc, pArgs));
-    return result;
-  }
-  else
-  {
-    mti_PrintFormatted("Python Module not found\n");
-    mti_FatalError();
-  }
-}
-
-static int dec_py(PyObject *myModule)
-{
-  mti_PrintFormatted("\t\t !!!! Calling python Function !!!! [%d,%d] \n", mti_NowUpper(), mti_Now());
-  if (myModule != NULL)
-  {
-    // Python module found, setup the function
-    PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"redact");
-    // Setup the parameters for the function
-    PyObject *pArgs = PyTuple_New(1);
-    int input_value = 1;
-    PyObject *pValue0 = PyLong_FromLong(input_value);
-    PyTuple_SetItem(pArgs, 0, pValue0);
-    // Convert the result back to C++ int
-    int result = PyLong_AsLong(callPy(pFunc, pArgs));
-    return result;
-  }
-  else
-  {
-    mti_PrintFormatted("Python Module not found\n");
-    mti_FatalError();
-  }
-}
-*/
-
 // Program the crossbar
 static void program(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
   mti_PrintFormatted("[Program]\tCrossbar is programmed with the following values: \n");
   print2DInt(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
+  PyObject *myModule = inst->myModule;
+  int **prog_values = read2DArray(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
+  mti_PrintFormatted("[Program]\t\t Values read from RTL are:\n");
+  for (int i = 0; i < 3; ++i)
+  {
+    for (int j = 0; j < 2; ++j)
+    {
+      mti_PrintFormatted("\t\t\t%d ", prog_values[i][j]);
+    }
+    mti_PrintFormatted("\n ");
+  }
+  // Sett the python arguments and function call
+  mti_PrintFormatted("Call py\n");
+  // Get the function from the module
+  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"py_set");
+  if (pFunc == NULL)
+  {
+    mti_PrintFormatted("Function not found \n");
+  }
+  // Create a 2D array in C and convert it to a Python list of lists
+  PyObject *pArray = PyList_New(CRB_ROW);
+  for (int i = 0; i < CRB_ROW; i++)
+  {
+    PyObject *pRow = PyList_New(CRB_COL);
+    for (int j = 0; j < CRB_COL; j++)
+    {
+      PyList_SetItem(pRow, j, PyLong_FromLong(prog_values[i][j]));
+    }
+    PyList_SetItem(pArray, i, pRow);
+  }
+  PyObject *pArgs = PyTuple_New(1);
+  PyTuple_SetItem(pArgs, 0, pArray);
+  PyObject *pResults;
+  mti_PrintFormatted("Ready to call\n");
+  pResults = callPy(pFunc, pArgs);
+  // Py_DECREF(pArgs);
+  if (pResults != NULL)
+  {
+    mti_PrintFormatted("Returned Array:\n");
+    for (int i = 0; i < PyList_Size(pResults); i++)
+    {
+      PyObject *pRow = PyList_GetItem(pResults, i);
+      for (int j = 0; j < PyList_Size(pRow); j++)
+      {
+        long elem = PyLong_AsLong(PyList_GetItem(pRow, j));
+        mti_PrintFormatted("%ld ", elem);
+      }
+      mti_PrintFormatted("\n");
+    }
+    // Py_DECREF(pResults);
+  }
+  else
+  {
+    mti_PrintFormatted("No Return\n");
+    mti_FatalError();
+  }
+  // Py_DECREF(pFunc);
+
+  delete2DArray(prog_values, inst->crossbar_input_prog_length);
 }
 
 // Compute using the crossbar
@@ -141,6 +131,55 @@ static void compute(void *param)
   instanceInfoT *inst = (instanceInfoT *)param;
   mti_PrintFormatted("[Compute]\tCrossbar is computing with the following values: \n");
   print1DInt(inst->crossbar_input_comp_id);
+
+  PyObject *myModule = inst->myModule;
+  int *comp_values = read1DArray(inst->crossbar_input_comp_id);
+  mti_PrintFormatted("[Compute]\t\t Values read from RTL are:\n");
+  for (int i = 0; i < CRB_ROW; ++i)
+  {
+    mti_PrintFormatted("\t\t\t%d ", comp_values[i]);
+    mti_PrintFormatted("\n ");
+  }
+
+  // Sett the python arguments and function call
+  mti_PrintFormatted("Call py\n");
+  // Get the function from the module
+  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"py_ret");
+  if (pFunc == NULL)
+  {
+    mti_PrintFormatted("Function not found \n");
+  }
+  // Create a 2D array in C and convert it to a Python list of lists
+  PyObject *pArray = PyList_New(CRB_ROW);
+  for (int i = 0; i < CRB_ROW; i++)
+  {
+    PyList_SetItem(pArray, i, PyLong_FromLong(comp_values[i]));
+  }
+  PyObject *pArgs = PyTuple_New(1);
+  PyTuple_SetItem(pArgs, 0, pArray);
+  PyObject *pResults;
+  mti_PrintFormatted("Ready to call\n");
+  pResults = callPy(pFunc, pArgs);
+  if (pResults != NULL)
+  {
+    mti_PrintFormatted("Returned Array:\n");
+    for (int i = 0; i < PyList_Size(pResults); i++)
+    {
+
+      long elem = PyLong_AsLong(PyList_GetItem(pResults, i));
+      mti_PrintFormatted("%ld ", elem);
+      mti_PrintFormatted("\n");
+    }
+  }
+  else
+  {
+    mti_PrintFormatted("No Return\n");
+    mti_FatalError();
+  }
+
+  comp_values = NULL;
+  delete comp_values;
+
   mtiInt32T *val;
   mtiInt32T tmp_val[CRB_COL];
   int i;
@@ -150,27 +189,14 @@ static void compute(void *param)
   }
   val = tmp_val;
   driveSig(inst->crossbar_output_drv, (void *)val);
+  val = NULL;
+  delete val;
 }
 
 // Function sensitive to clock
 static void clock_proc(void *param)
 {
   instanceInfoT *inst = (instanceInfoT *)param;
-  /* PyObject *myModule = inst->myModule;
-  int x = -1;
-  void *array_val;
-  array_val = mti_GetArraySignalValue(inst->int_array_id, 0);
-  mtiInt32T *val = (mtiInt32T *)array_val;
-  if (val[0] > 5)
-  {
-    x = dec_py(myModule);
-  }
-  else
-  {
-    x = inc_py(myModule);
-  }
-  mti_PrintFormatted("\t\t !!!! Python returned %d !!!! [%d,%d] \n", x, mti_NowUpper(), mti_Now());
- */
   // check for the reset value
   mti_PrintFormatted("Function called in [%d,%d]  %s = %s\n", mti_NowUpper(), mti_Now(), mti_GetSignalName(inst->rst_id), mti_SignalImage(inst->rst_id));
   mtiInt32T scalar_val;
@@ -190,17 +216,12 @@ static void clock_proc(void *param)
       inst->crossbar_rdy_vlu = STD_LOGIC_1;
       inst->program_vlu = mti_GetSignalValue(inst->program_id);
       inst->compute_vlu = mti_GetSignalValue(inst->compute_id);
-      mti_PrintFormatted("program %d, compute %d\n", inst->program_vlu, inst->compute_vlu);
-      mti_PrintFormatted("program %s, compute %s\n", mti_GetSignalName(inst->program_id), mti_GetSignalName(inst->compute_id));
-      mti_PrintFormatted("program %s, compute %s\n", mti_GetRegionFullName(mti_GetSignalRegion(inst->program_id)), mti_GetRegionFullName(mti_GetSignalRegion(inst->compute_id)));
-
       if (inst->compute_vlu == STD_LOGIC_1)
       {
         if (inst->program_vlu == STD_LOGIC_1)
         {
-          mti_PrintFormatted("program %d, compute %d\n", inst->program_vlu, inst->compute_vlu);
           mti_PrintFormatted("\t\t!ERROR! Both program and compute signals active at the same time!\n");
-          // mti_FatalError();
+          mti_FatalError();
         }
         inst->crossbar_rdy_vlu = STD_LOGIC_0;
         compute(inst);
@@ -253,6 +274,8 @@ void loadDoneCallback(void *param)
   inst->crossbar_input_prog_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_prog_id));
   inst->crossbar_input_comp_length = mti_TickLength(mti_GetSignalType(inst->crossbar_input_comp_id));
   inst->crossbar_output_length = mti_TickLength(mti_GetSignalType(inst->crossbar_output_id));
+  val = NULL;
+  delete val;
 }
 
 // Main function that links to an architecture
@@ -282,13 +305,21 @@ extern "C" void initForeign(
   inst->crossbar_rdy_id = mti_FindSignal("/MIMO_TOP/crossbar_rdy");
   inst->crossbar_output_id = mti_FindSignal("/MIMO_TOP/crossbar_output");
 
-  /*Py_Initialize();
+  Py_Initialize();
   PyObject *sysPath = PySys_GetObject("path");
-  PyList_Append(sysPath, PyUnicode_FromString(PY_PATH));
-  PyObject *myModuleString = PyUnicode_FromString(PY_NAME);
+  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/src_c"));
+  PyObject *myModuleString = PyUnicode_FromString("my_test");
   PyObject *myModule = PyImport_Import(myModuleString);
-  inst->myModule = myModule;*/
-
+  if (myModule != NULL)
+  {
+    inst->myModule = myModule;
+    mti_PrintFormatted("Py Module Loaded\n");
+  }
+  else
+  {
+    mti_PrintFormatted("Python module not found\n");
+    mti_FatalError();
+  }
   procid = mti_CreateProcess("clock_proc", clock_proc, inst);
   inst->procid = procid;
   mti_Sensitize(procid, inst->clk_id, MTI_EVENT);

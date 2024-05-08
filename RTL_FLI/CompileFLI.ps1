@@ -40,7 +40,7 @@ function Show_Help {
 }
 
 function Clean_Up {
-  $extensions = @("*.dll", "*.exp", "*.lib", "*.obj", ".exe")  
+  $extensions = @("*.dll", "*.exp", "*.lib", "*.obj", "*.exe")  
   foreach ($ext in $extensions) {
     Get-ChildItem -Path . -Filter $ext -Recurse | ForEach-Object {
       Write-Host "Deleting $($_.FullName)"
@@ -91,7 +91,8 @@ function Compile {
       Write-Output "Compiling C++ with Python"
       if ($Dopt -eq "null") {
         & $Compiler /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
-      }else{
+      }
+      else {
         & $Compiler $Dopt /EHsc $cppStandard /I$includePython $SrcFile /link $linkPythonLib
       }
     }
@@ -99,7 +100,8 @@ function Compile {
       Write-Output "Compiling QS with Python"
       if ($Dopt -eq "null") {
         & $Compiler -c /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
-      }else{
+      }
+      else {
         & $Compiler -c $Dopt /EHsc $cppStandard /I$includeModelSim /I$includePython /LD $SrcFile 
       }
       & link -DLL -export:$Func $name".obj" $linkModelSimLib $linkPythonLib /out:$Out
@@ -114,7 +116,8 @@ function Compile {
       Write-Output "Compiling simple c++"
       if ($Dopt -eq "null") {
         & $Compiler /EHsc $cppStandard $SrcFile
-      }else{
+      }
+      else {
         & $Compiler $Dopt /EHsc $cppStandard $SrcFile
       }
       
@@ -123,7 +126,8 @@ function Compile {
       Write-Output "Compiling QS"
       if ($Dopt -eq "null") {
         & $Compiler -c /EHsc /I$includeModelSim /LD $SrcFile
-      }else{
+      }
+      else {
         & $Compiler -c $Dopt /EHsc /I$includeModelSim /LD $SrcFile
       } 
       & link -DLL -export:$Func $name".obj" $linkModelSimLib /out:$Out

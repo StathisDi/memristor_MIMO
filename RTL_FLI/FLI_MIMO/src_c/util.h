@@ -3,6 +3,7 @@
 #include <mti.h>
 #include <Python.h>
 #include <limits.h>
+#include <vector>
 
 // Function that normalize an integer to a symmetric range -1 to 1
 double intToNormalizedRealSymmetric(int x)
@@ -181,6 +182,43 @@ static void print2DInt(mtiSignalIdT sigid, mtiInt32T signal_length)
   mti_VsimFree(elem_list);
 }
 
+int **read2DArray(mtiSignalIdT sigid, mtiInt32T signal_length)
+{
+  // Allocate an array of pointers to represent rows
+  mtiInt32T **array = new mtiInt32T *[signal_length];
+  mtiSignalIdT *elem_list;
+  elem_list = mti_GetSignalSubelements(sigid, 0);
+  mti_PrintFormatted("Reading values for signal %s\n", mti_GetSignalName(sigid));
+  mti_PrintFormatted("\tSignal has %d rows.\n", signal_length);
+  for (int i = 0; i < signal_length; ++i)
+  {
+    mtiInt32T *array_val;
+    mtiTypeIdT type;
+    mtiInt32T siglen;
+    type = mti_GetSignalType(elem_list[i]);
+    siglen = mti_TickLength(type);
+    // Allocate an array for each row and initialize with the initial value
+    array[i] = new int[siglen];
+    array_val = (mtiInt32T *)mti_GetArraySignalValue(elem_list[i], 0);
+    mti_PrintFormatted("Signal 'j' length is %d\n", siglen);
+    for (int j = 0; j < siglen; ++j)
+    {
+      array[i][j] = array_val[j];
+    }
+  }
+  return array;
+}
+
+// Function to deallocate the 2D array
+static void delete2DArray(int **array, int rows)
+{
+  for (int i = 0; i < rows; ++i)
+  {
+    delete[] array[i];
+  }
+  delete[] array;
+}
+
 // Print the values of a 1D int array
 static void print1DInt(mtiSignalIdT sigid)
 {
@@ -198,6 +236,13 @@ static void print1DInt(mtiSignalIdT sigid)
   }
   mti_VsimFree(array_val);
   mti_PrintFormatted("\n");
+}
+
+static mtiInt32T *read1DArray(mtiSignalIdT sigid)
+{
+  mtiInt32T *array_val;
+  array_val = (mtiInt32T *)mti_GetArraySignalValue(sigid, 0);
+  return array_val;
 }
 
 // Assign values in up to 1D VHDL array
