@@ -6,7 +6,7 @@
 #include <vector>
 
 // Function that normalize an integer to a symmetric range -1 to 1
-double intToNormalizedRealSymmetric(int x)
+double intToNormalizedReal(int x)
 {
   if (x == INT_MIN)
   {
@@ -14,7 +14,7 @@ double intToNormalizedRealSymmetric(int x)
   }
   else
   {
-    return x / (double)(x < 0 ? -INT_MIN : INT_MAX);
+    return x / (float)(INT_MAX) * 100000;
   }
 }
 
@@ -329,8 +329,8 @@ static double **intToFloat2D(int **values, int row, int cols)
     float_array[i] = new double[cols];
     for (int j = 0; j < cols; ++j)
     {
-      float_array[i][j] = intToNormalizedRealSymmetric(values[i][j]);
-      mti_PrintFormatted("\t\t\t%f ", float_array[i][j]);
+      float_array[i][j] = intToNormalizedReal(values[i][j]);
+      mti_PrintFormatted("\t\t\t%G ", float_array[i][j]);
     }
     mti_PrintFormatted("\n ");
   }
@@ -344,8 +344,8 @@ static double *intToFloat1D(int *values, int row)
   mti_PrintFormatted("\t\tCalculating 1D float array: \n");
   for (int i = 0; i < row; ++i)
   {
-    float_array[i] = intToNormalizedRealSymmetric(values[i]);
-    mti_PrintFormatted("\t\t\t%f \n", float_array[i]);
+    float_array[i] = intToNormalizedReal(values[i]);
+    mti_PrintFormatted("\t\t\t%G \n", float_array[i]);
   }
   return float_array;
 }

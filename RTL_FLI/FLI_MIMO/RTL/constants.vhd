@@ -8,10 +8,10 @@ PACKAGE constants IS
   CONSTANT crossbar_cols  : NATURAL := 2;
 
   CONSTANT program_val   : int_2d_array_ty(crossbar_rows - 1 DOWNTO 0, crossbar_cols - 1 DOWNTO 0) :=(
-    (-1234, 2),  -- Row 0
-    (1, -41),   -- Row 1
-    (4, 3124)   -- Row 1
+    (-1234, 20),  -- Row 0
+    (111, -41),   -- Row 1
+    (401, 3124)   -- Row 1
   );
 
-  CONSTANT compute_val   : int_array_ty(crossbar_rows - 1 DOWNTO 0) := (2, 3, 2);
+  CONSTANT compute_val   : int_array_ty(crossbar_rows - 1 DOWNTO 0) := (21474, 21474, 21474);
 END PACKAGE;

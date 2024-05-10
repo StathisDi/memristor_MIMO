@@ -20,7 +20,7 @@ ARCHITECTURE sim OF MIMO_TOP IS
   SIGNAL done                : STD_LOGIC;
   SIGNAL crossbar_input_prog : int_2d_array_ty(crossbar_rows - 1 DOWNTO 0, crossbar_cols - 1 DOWNTO 0); -- This signal is used when we want to program the crossbar
   SIGNAL crossbar_input_comp : int_array_ty(crossbar_rows - 1 DOWNTO 0);                                -- This signal is used when we want to perform a computation
-  SIGNAL crossbar_output     : int_array_ty(crossbar_cols - 1 DOWNTO 0);                                -- This signal is the output of the crossbar
+  SIGNAL crossbar_output     : real_array_ty(crossbar_cols - 1 DOWNTO 0);                               -- This signal is the output of the crossbar
 
   COMPONENT mti_front
   END COMPONENT;

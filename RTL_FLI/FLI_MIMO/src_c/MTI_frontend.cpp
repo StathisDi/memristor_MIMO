@@ -91,7 +91,7 @@ static void program(void *param)
   PyObject *pResults;
   mti_PrintFormatted("Ready to program the crossbar!\n");
   pResults = callPy(pFunc, pArgs);
-  Py_DECREF(pArgs);
+  // Py_DECREF(pArgs);
   if (pResults != NULL)
   {
     mti_PrintFormatted("Program Py function returned: %d\n", PyLong_AsLong(pResults));
@@ -101,8 +101,8 @@ static void program(void *param)
     mti_PrintFormatted("Program function did not return\n");
     mti_FatalError();
   }
-  Py_DECREF(pResults);
-  Py_DECREF(pFunc);
+  // Py_DECREF(pResults);
+  // Py_DECREF(pFunc);
 
   delete2DArray(prog_values, inst->crossbar_input_prog_length);
   delete2DArray(float_values, CRB_ROW);
@@ -136,42 +136,43 @@ static void compute(void *param)
   PyObject *pArray = pyList1D(float_values, CRB_ROW);
   PyObject *pArgs = PyTuple_New(1);
   PyTuple_SetItem(pArgs, 0, pArray);
-  PyObject *pResults;
-  mti_PrintFormatted("Ready to call compute function!\n");
-  pResults = callPy(pFunc, pArgs);
-  if (pResults != NULL)
-  {
-    mti_PrintFormatted("Returned Array:\n");
-    double temp[CRB_COL];
-    PyObject *ptemp;
-    for (int i = 0; i < PyList_Size(pResults); i++)
-    {
 
-      ptemp = PyList_GetItem(pResults, i);
-      temp[i] = PyFloat_AS_DOUBLE(ptemp);
-      printf("Good %d: %f \n", i, temp[i]);
+  PyObject *pResult = NULL;
+  double temp[CRB_COL];
+  // If function exists call the function
+  if (pFunc != NULL)
+  {
+    mti_PrintFormatted("\t\t Calling Py Function with args.\n");
+    pResult = PyObject_CallObject(pFunc, pArgs);
+    if (pResult != NULL)
+    {
+      // Convert the result back to C++ int
+      // int result = PyLong_AsLong(pResult);
+      PyObject *ptemp;
+      for (int i = 0; i < CRB_COL; i++)
+      {
+        ptemp = PyList_GetItem(pResult, i);
+        temp[i] = PyFloat_AS_DOUBLE(ptemp);
+        mti_PrintFormatted("Results %d: %G \n", i, temp[i]);
+      }
+    }
+    else
+    {
+      mti_PrintFormatted("Function call failed.\n");
+      mti_FatalError();
     }
   }
   else
   {
-    mti_PrintFormatted("No Return\n");
+    mti_PrintFormatted("Couldn't find function\n");
     mti_FatalError();
   }
-
   comp_values = NULL;
+  float_values = NULL;
+  delete float_values;
   delete comp_values;
-
-  mtiInt32T *val;
-  mtiInt32T tmp_val[CRB_COL];
-  int i;
-  for (i = 0; i < CRB_COL; i++)
-  {
-    tmp_val[i] = i * 2 + 2;
-  }
-  val = tmp_val;
-  driveSig(inst->crossbar_output_drv, (void *)val);
-  val = NULL;
-  delete val;
+  mti_PrintFormatted("Computation done\n");
+  driveSig(inst->crossbar_output_drv, (void *)temp);
 }
 
 // Function sensitive to clock
