@@ -67,9 +67,9 @@ static void program(void *param)
   PyObject *myModule = inst->myModule;
   int **prog_values = read2DArray(inst->crossbar_input_prog_id, inst->crossbar_input_prog_length);
   mti_PrintFormatted("[Program]\t\t Values read from RTL are:\n");
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < CRB_ROW; ++i)
   {
-    for (int j = 0; j < 2; ++j)
+    for (int j = 0; j < CRB_COL; ++j)
     {
       mti_PrintFormatted("\t\t\t%d ", prog_values[i][j]);
     }
