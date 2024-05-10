@@ -3,10 +3,10 @@
 #include <Python.h>
 
 #ifndef PY_PATH
-#define PY_PATH "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/src_c"
+#define PY_PATH "C:/Users/Dimitris/Documents/github/memristor_MIMO/modules/MemMIMO/examples/MIMO"
 #endif
 #ifndef PY_NAME
-#define PY_NAME "test"
+#define PY_NAME "wrapper"
 #endif
 
 #ifndef CRB_COL
@@ -75,54 +75,37 @@ static void program(void *param)
     }
     mti_PrintFormatted("\n ");
   }
+  double **float_values = intToFloat2D(prog_values, CRB_ROW, CRB_COL);
   // Sett the python arguments and function call
   mti_PrintFormatted("Call py\n");
   // Get the function from the module
-  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"py_set");
+  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"mem_program");
   if (pFunc == NULL)
   {
     mti_PrintFormatted("Function not found \n");
   }
   // Create a 2D array in C and convert it to a Python list of lists
-  PyObject *pArray = PyList_New(CRB_ROW);
-  for (int i = 0; i < CRB_ROW; i++)
-  {
-    PyObject *pRow = PyList_New(CRB_COL);
-    for (int j = 0; j < CRB_COL; j++)
-    {
-      PyList_SetItem(pRow, j, PyLong_FromLong(prog_values[i][j]));
-    }
-    PyList_SetItem(pArray, i, pRow);
-  }
+  PyObject *pArray = pyList2D(float_values, CRB_ROW, CRB_COL);
   PyObject *pArgs = PyTuple_New(1);
   PyTuple_SetItem(pArgs, 0, pArray);
   PyObject *pResults;
-  mti_PrintFormatted("Ready to call\n");
+  mti_PrintFormatted("Ready to program the crossbar!\n");
   pResults = callPy(pFunc, pArgs);
-  // Py_DECREF(pArgs);
+  Py_DECREF(pArgs);
   if (pResults != NULL)
   {
-    mti_PrintFormatted("Returned Array:\n");
-    for (int i = 0; i < PyList_Size(pResults); i++)
-    {
-      PyObject *pRow = PyList_GetItem(pResults, i);
-      for (int j = 0; j < PyList_Size(pRow); j++)
-      {
-        long elem = PyLong_AsLong(PyList_GetItem(pRow, j));
-        mti_PrintFormatted("%ld ", elem);
-      }
-      mti_PrintFormatted("\n");
-    }
-    // Py_DECREF(pResults);
+    mti_PrintFormatted("Program Py function returned: %d\n", PyLong_AsLong(pResults));
   }
   else
   {
-    mti_PrintFormatted("No Return\n");
+    mti_PrintFormatted("Program function did not return\n");
     mti_FatalError();
   }
-  // Py_DECREF(pFunc);
+  Py_DECREF(pResults);
+  Py_DECREF(pFunc);
 
   delete2DArray(prog_values, inst->crossbar_input_prog_length);
+  delete2DArray(float_values, CRB_ROW);
 }
 
 // Compute using the crossbar
@@ -140,35 +123,33 @@ static void compute(void *param)
     mti_PrintFormatted("\t\t\t%d ", comp_values[i]);
     mti_PrintFormatted("\n ");
   }
-
+  double *float_values = intToFloat1D(comp_values, CRB_ROW);
   // Sett the python arguments and function call
-  mti_PrintFormatted("Call py\n");
+  mti_PrintFormatted("Call Compute function!\n");
   // Get the function from the module
-  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"py_ret");
+  PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"mem_compute");
   if (pFunc == NULL)
   {
     mti_PrintFormatted("Function not found \n");
   }
-  // Create a 2D array in C and convert it to a Python list of lists
-  PyObject *pArray = PyList_New(CRB_ROW);
-  for (int i = 0; i < CRB_ROW; i++)
-  {
-    PyList_SetItem(pArray, i, PyLong_FromLong(comp_values[i]));
-  }
+  // Create a 1D array in C and convert it to a Python list of lists
+  PyObject *pArray = pyList1D(float_values, CRB_ROW);
   PyObject *pArgs = PyTuple_New(1);
   PyTuple_SetItem(pArgs, 0, pArray);
   PyObject *pResults;
-  mti_PrintFormatted("Ready to call\n");
+  mti_PrintFormatted("Ready to call compute function!\n");
   pResults = callPy(pFunc, pArgs);
   if (pResults != NULL)
   {
     mti_PrintFormatted("Returned Array:\n");
+    double temp[CRB_COL];
+    PyObject *ptemp;
     for (int i = 0; i < PyList_Size(pResults); i++)
     {
 
-      long elem = PyLong_AsLong(PyList_GetItem(pResults, i));
-      mti_PrintFormatted("%ld ", elem);
-      mti_PrintFormatted("\n");
+      ptemp = PyList_GetItem(pResults, i);
+      temp[i] = PyFloat_AS_DOUBLE(ptemp);
+      printf("Good %d: %f \n", i, temp[i]);
     }
   }
   else
@@ -307,8 +288,8 @@ extern "C" void initForeign(
 
   Py_Initialize();
   PyObject *sysPath = PySys_GetObject("path");
-  PyList_Append(sysPath, PyUnicode_FromString("C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/src_c"));
-  PyObject *myModuleString = PyUnicode_FromString("my_test");
+  PyList_Append(sysPath, PyUnicode_FromString(PY_PATH));
+  PyObject *myModuleString = PyUnicode_FromString(PY_NAME);
   PyObject *myModule = PyImport_Import(myModuleString);
   if (myModule != NULL)
   {

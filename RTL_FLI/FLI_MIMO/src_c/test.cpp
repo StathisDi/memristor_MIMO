@@ -42,14 +42,14 @@ int main(int argc, char **argv)
   }
   PyObject *pFunc = PyObject_GetAttrString(myModule, (char *)"mem_program");
   PyObject *pArgs = PyTuple_New(1);
-  int input_value = 1;
+  double input_value = 0.1;
   PyObject *pArray = PyList_New(CRB_ROW);
   for (int i = 0; i < CRB_ROW; i++)
   {
     PyObject *pRow = PyList_New(CRB_COL);
     for (int j = 0; j < CRB_COL; j++)
     {
-      PyList_SetItem(pRow, j, PyLong_FromLong(input_value));
+      PyList_SetItem(pRow, j, PyFloat_FromDouble(input_value));
     }
     PyList_SetItem(pArray, i, pRow);
   }
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
   pFunc = PyObject_GetAttrString(myModule, (char *)"mem_compute");
   pArgs = PyTuple_New(1);
-  float inp = 0.5;
+  float inp = 0.1;
   pArray = PyList_New(CRB_ROW);
   for (int i = 0; i < CRB_ROW; i++)
   {
@@ -94,6 +94,7 @@ int main(int argc, char **argv)
   {
     printf("\t\t Calling Py Function with args.\n");
     pResult = PyObject_CallObject(pFunc, pArgs);
+    Py_DECREF(pArgs);
     if (pResult != NULL)
     {
       // Convert the result back to C++ int
@@ -112,6 +113,8 @@ int main(int argc, char **argv)
       printf("Function call failed.\n");
       exit(-1);
     }
+    Py_DECREF(pResult);
+    Py_DECREF(pFunc);
   }
   else
   {

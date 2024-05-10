@@ -219,6 +219,16 @@ static void delete2DArray(int **array, int rows)
   delete[] array;
 }
 
+// Function to deallocate the 2D array
+static void delete2DArray(double **array, int rows)
+{
+  for (int i = 0; i < rows; ++i)
+  {
+    delete[] array[i];
+  }
+  delete[] array;
+}
+
 // Print the values of a 1D int array
 static void print1DInt(mtiSignalIdT sigid)
 {
@@ -281,4 +291,62 @@ static PyObject *callPy(PyObject *pFunc, PyObject *pArgs)
   return pResult;
 }
 
+// Create and return a 2D python list of float numbers
+static PyObject *pyList2D(double **values, int row, int cols)
+{
+  PyObject *pArray = PyList_New(row);
+  for (int i = 0; i < row; i++)
+  {
+    PyObject *pRow = PyList_New(cols);
+    for (int j = 0; j < cols; j++)
+    {
+      PyList_SetItem(pRow, j, PyFloat_FromDouble(values[i][j]));
+    }
+    PyList_SetItem(pArray, i, pRow);
+  }
+  return pArray;
+}
+
+// Create and return a 1D python list of float numbers
+static PyObject *pyList1D(double *values, int row)
+{
+  PyObject *pArray = PyList_New(row);
+  for (int i = 0; i < row; i++)
+  {
+
+    PyList_SetItem(pArray, i, PyFloat_FromDouble(values[i]));
+  }
+  return pArray;
+}
+
+// Turn an integer 2D array to double 2D array between 0 and 1
+static double **intToFloat2D(int **values, int row, int cols)
+{
+  mti_PrintFormatted("\t\tCalculating 2D float array: \n");
+  double **float_array = new double *[row];
+  for (int i = 0; i < row; ++i)
+  {
+    float_array[i] = new double[cols];
+    for (int j = 0; j < cols; ++j)
+    {
+      float_array[i][j] = intToNormalizedRealSymmetric(values[i][j]);
+      mti_PrintFormatted("\t\t\t%f ", float_array[i][j]);
+    }
+    mti_PrintFormatted("\n ");
+  }
+  return float_array;
+}
+
+// Turn an integer 1D array to double 1D array between 0 and 1
+static double *intToFloat1D(int *values, int row)
+{
+  double *float_array = new double[row];
+  mti_PrintFormatted("\t\tCalculating 1D float array: \n");
+  for (int i = 0; i < row; ++i)
+  {
+    float_array[i] = intToNormalizedRealSymmetric(values[i]);
+    mti_PrintFormatted("\t\t\t%f \n", float_array[i]);
+  }
+  return float_array;
+}
 #endif
