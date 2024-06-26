@@ -4,7 +4,10 @@
 
 ### Requirements
 
-[comment]: list the python library requirements here
+* python==3.8
+* cuda==11.6
+* pytorch==1.13.1
+* matplotlib
 
 ### Setting the environment
 
@@ -14,7 +17,11 @@ The environment variable should be named as `SIMBRAIN_PATH`.
 
 ### Simulating the crossbar
 
-[comment]: explain how to simulate (run) the python crossbar.
+The pytorch-based simulation framework is accessed through an interface located in `MemMIMO/examples/MIMO/wrapper.py`.
+
+This interface supports two types of operations: program and compute. For the program operation, the crossbar is programmed with memristor conductances that are modulated according to the matrix values. For the compute operation, the crossbar is read by applying readout voltage pulses to each row. The readout voltage pulses are generated according to the vector values.
+
+The program function takes a matrix as input and returns 0 or 1. The compute function takes a vector as input and returns the result of the matrix-vector multiplication (MVM).
 
 ## Compile and use of the FLI interface
 
