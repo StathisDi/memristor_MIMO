@@ -36,9 +36,9 @@ Possible crossbar parameters:
 | memristor_device    | "new_ferro" | ideal, ferro, new_ferro, or hu                                      ||
 | c2c_variation       | False       | True, False                                                         ||
 | d2d_variation       | 0           | 0: No d2d variation, 1: both, 2: Gon/Goff only, 3: nonlinearity only||
-| stuck_at_fault      | False       | True, False                                                         ||
-| retention_loss      | 0           | retention loss, 0: without it, 1: during pulse                      ||
-| aging_effect        | 0           | 0: No aging effect, 1: equation 1, 2: equation 2                    ||
+| stuck_at_fault      | False       | True, False                                                         | Not used |
+| retention_loss      | 0           | retention loss, 0: without it, 1: during pulse                      | Not used |
+| aging_effect        | 0           | 0: No aging effect, 1: equation 1, 2: equation 2                    | Not used |
 
 Parameters for the Peripheral Circuit
 | Parameter name        | Value       | Possible values                                                             |Notes|
