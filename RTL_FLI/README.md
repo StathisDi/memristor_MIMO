@@ -89,6 +89,8 @@ To run the simulation in Questasim you need to copy the generated .dll, or .so, 
 
 You can also use the simulation.do script provided. There you can specify the location where the .so or .dll file is located. The .do script will automatically copy the file to the current directory and start the simulation. Note that the script does not compile the RTL, it assumes that the work library is already loaded in Questasim.
 
+### Configure FLI C and RTL front-end
+
 # LICENSE
 
 MIT License
