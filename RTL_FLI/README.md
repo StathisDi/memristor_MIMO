@@ -23,6 +23,36 @@ This interface supports two types of operations: program and compute. For the pr
 
 The program function takes a matrix as input and returns 0 or 1. The compute function takes a vector as input and returns the result of the matrix-vector multiplication (MVM).
 
+#### Crossbar settings
+
+The `wrapper.py` statically defines the parameters of the crossbar. If you like to change the crossbar, you first need to edit the `wrapper.py` file.
+
+Possible crossbar parameters:
+| Parameter name      | Value       | Possible values                                                     |Notes|
+|---------------------|-------------|---------------------------------------------------------------------|-----|
+| CRB_ROW             | 3           | Integer                                                             | This value has to be the same in the C FLI interface |
+| CRB_COL             | 2           | Integer                                                             | This value has to be the same in the C FLI interface |
+| memristor_structure | "mimo"      | "mimo"                                                              | Should not be changed |
+| memristor_device    | "new_ferro" | ideal, ferro, new_ferro, or hu                                      ||
+| c2c_variation       | False       | True, False                                                         ||
+| d2d_variation       | 0           | 0: No d2d variation, 1: both, 2: Gon/Goff only, 3: nonlinearity only||
+| stuck_at_fault      | False       | True, False                                                         ||
+| retention_loss      | 0           | retention loss, 0: without it, 1: during pulse                      ||
+| aging_effect        | 0           | 0: No aging effect, 1: equation 1, 2: equation 2                    ||
+
+Parameters for the Peripheral Circuit
+| Parameter name        | Value       | Possible values                                                             |Notes|
+|-----------------------|-------------|-----------------------------------------------------------------------------|-----|
+| wire_width            | 200         | Float                                                                       | In practice, wire_width shall be set around 1/2 of the memristor size; Hu: 10um; Ferro:200nm; |
+| input_bit             | 8           | Integer                                                                     | This value has to much the HDL |
+| CMOS_technode         | 14          | Integer                                                                     ||
+| ADC_precision         | 32          | Integer                                                                     ||
+| ADC_setting           | 4           | 2:two memristor crossbars use one ADC; 4:one memristor crossbar use one ADC ||
+| ADC_rounding_function | "floor"     | floor or round                                                              ||
+| device_roadmap        | "HP"        | HP: High Performance or LP: Low Power                                       ||
+| temperature           | 300         | Integer                                                                     ||
+| hardware_estimation   | True        | area and power estimation                                                   ||
+
 ## Compile and use of the FLI interface
 
 This section explains how to compile and use the FLI interface for the memristor crossbar with Questasim.
