@@ -91,6 +91,23 @@ You can also use the simulation.do script provided. There you can specify the lo
 
 ### Configure FLI C and RTL front-end
 
+#### Configuring the RTL
+
+In the `constants.vhd` set the following two parameters to match the ones in `wrapper.py`:
+- `crossbar_rows` = `CRB_ROW`
+- `crossbar_cols` = `CRB_COL`
+
+You need to change these values and make sure they match, before compiling and simulating the RTL.
+
+#### Configuring the FLI C
+
+In the MTI format you need to define the following compiler constants:
+- `PY_PATH` = Path to the folder containing the `wrapper.py`
+- `CRB_COL` = must match the value set in the `wrapper.py`  
+- `CRB_ROW` = must match the value set in the `wrapper.py` 
+
+You do not need to edit the file to set these constants, alternatively you can set the values in your OS before the compilation process.
+
 # LICENSE
 
 MIT License
