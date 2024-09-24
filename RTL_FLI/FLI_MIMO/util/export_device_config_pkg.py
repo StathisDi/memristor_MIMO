@@ -48,7 +48,7 @@ inputs:
 device_data: dictionary with the device data
 o: the name of the output file
 '''
-def write_package(device_data, o):
+def write_package(device_data, name, o):
     # Create a VHDL package
     pkg = hdl.VHDLPackage(o)
 
@@ -56,6 +56,7 @@ def write_package(device_data, o):
     pkg.add_use_clause("IEEE.std_logic_1164.ALL")
     pkg.add_use_clause("IEEE.math_real.ALL")
 
+    pkg.add_constant("device_type", str("\""+str(name)+"\""), "string")
     pkg.add_constant("device_states", device_data.get('total_no'), "integer")
     pkg.add_constant("dt", "{:.10f}".format(device_data.get('cycle:')), "real")
     pkg.add_constant("duty_cycle", device_data.get('duty ratio'), "real")
@@ -90,7 +91,7 @@ def main():
         raise SystemExit("Device selected not in file.")
     print("Device selected: ("+str(select)+") ")
     print(str(data.get(select)))
-    write_package(data.get(select),o_name)
+    write_package(data.get(select),select,o_name)
 
 
 if __name__ == "__main__":

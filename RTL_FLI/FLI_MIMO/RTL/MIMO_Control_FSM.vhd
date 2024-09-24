@@ -24,6 +24,9 @@ ARCHITECTURE FSM OF MIMO_Control_FSM IS
   SIGNAL counter           : INTEGER;
 BEGIN
 
+  -- This process interfaces with the digital part.
+  -- It reads and assembles the data to be send to the crossbar
+  -- and sets the correct signals.
   P_reg : PROCESS (clk, rst_n)
   BEGIN
     IF rst_n = '0' THEN
@@ -87,6 +90,12 @@ BEGIN
           NULL;
       END CASE;
     END IF;
+  END PROCESS;
+
+  -- TODO This process is emulating the timing behavior of the crossbar It creates the proper delays and translates the data from signed -> int
+  PROCESS
+  BEGIN
+    --TODO this process should have the appropriate delays introduced
   END PROCESS;
 
 END ARCHITECTURE;

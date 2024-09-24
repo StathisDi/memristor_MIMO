@@ -4,6 +4,9 @@ USE ieee.numeric_std.ALL;
 USE work.data_types.ALL;
 
 PACKAGE constants IS
+
+  CONSTANT BITWIDTH : NATURAL := 12; --! The bitwidth value should be the same as the resolution set in the python model, i.e.  ADC_precision
+
   CONSTANT crossbar_rows : NATURAL := 3;
   CONSTANT crossbar_cols  : NATURAL := 2;
 

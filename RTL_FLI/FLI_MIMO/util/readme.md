@@ -12,7 +12,7 @@ Inputs:
 It requires the following packages:
 - os
 - argparse
-- pickle
+- numpy
 
 # LICENSE
 
