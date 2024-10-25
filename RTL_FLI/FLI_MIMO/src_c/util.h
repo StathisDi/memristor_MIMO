@@ -29,6 +29,7 @@ SOFTWARE.
 #include <vector>
 
 // Function that normalize an integer to a symmetric range -1 to 1
+// This maps the integer values from the VHDL to the programmed values in the crossbar.
 double intToNormalizedReal(int x)
 {
   if (x == INT_MIN)
@@ -343,6 +344,9 @@ static PyObject *pyList1D(double *values, int row)
 }
 
 // Turn an integer 2D array to double 2D array between 0 and 1
+// This function changes the integer values to float, the integer values from the VHDL
+// has to be normalized to a range between -1 and 1 to be programmed in the crossbar.
+// If the mapping need to change, the function intToNormalizedReal has to be modified.
 static double **intToFloat2D(int **values, int row, int cols)
 {
   mti_PrintFormatted("\t\tCalculating 2D float array: \n");

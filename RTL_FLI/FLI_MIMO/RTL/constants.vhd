@@ -9,6 +9,7 @@ PACKAGE constants IS
 
   CONSTANT crossbar_rows : NATURAL := 3;
   CONSTANT crossbar_cols  : NATURAL := 2;
+  CONSTANT period : time := 10 ns; --! This defines the period in ns that the digital design will run at
 
   CONSTANT program_val   : int_2d_array_ty(crossbar_rows - 1 DOWNTO 0, crossbar_cols - 1 DOWNTO 0) :=(
     (-1234, 20),  -- Row 0

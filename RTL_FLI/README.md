@@ -108,6 +108,12 @@ In the MTI format you need to define the following compiler constants:
 
 You do not need to edit the file to set these constants, alternatively you can set the values in your OS before the compilation process.
 
+#### Programming the crossbar
+
+The VHDL currently is using integer as inputs. The python corssbar simulator currently accepts inputs (real) from -1 to 1.
+The mapping in this version is done by directly normalizing the values to -1 to 1. This mapping can be changed by altering the
+mapping functions in the `util.h` file.
+
 # LICENSE
 
 MIT License
