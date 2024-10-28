@@ -58,7 +58,7 @@ def write_package(device_data, name, o):
 
     pkg.add_constant("device_type", str("\""+str(name)+"\""), "string")
     pkg.add_constant("device_states", device_data.get('total_no'), "integer")
-    pkg.add_constant("dt", "{:.10f}".format(device_data.get('cycle:')), "real")
+    pkg.add_constant("dt", "{:.10f}".format(device_data.get('cycle:')), "time")
     pkg.add_constant("duty_cycle", device_data.get('duty ratio'), "real")
 
     code_gen = hdl.VHDLCodeGen()

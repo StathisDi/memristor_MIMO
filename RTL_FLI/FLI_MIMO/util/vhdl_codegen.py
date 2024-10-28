@@ -87,7 +87,10 @@ class VHDLPackage:
 
     def add_constant(self, name, value, data_type):
         """Add a constant with a specific type."""
-        constant_str = f"constant {name}: {data_type} := {value};"
+        if data_type == "time":
+            constant_str = f"constant {name}: {data_type} := {value} s;"
+        else:
+            constant_str = f"constant {name}: {data_type} := {value};"
         self.constants.append(constant_str)
         self._update_code()
 
