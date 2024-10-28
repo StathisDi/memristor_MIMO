@@ -7,14 +7,15 @@ USE work.function_pack.custom_delay;
 
 ENTITY MIMO_Control_FSM IS
   PORT (
-    clk          : IN STD_LOGIC;
-    rst_n        : IN STD_LOGIC;
-    instr        : IN INSTRUCTION;                              --! The instruction to be executed by the crossbar
-    data_in      : IN int_array_ty(crossbar_rows - 1 DOWNTO 0); --! The data to be programmed or computed, the data input comes in the form of 1D array equal to the number of rows in the crossbar
-    crossbar_rdy : IN STD_LOGIC;                                --! Asserted while the crossbar is ready for a new operation. When this signal is deasserted, the crossbar can not receive a new instruction 
-    reading_prog : OUT STD_LOGIC;                               --! Asserted while programming the crossbar. During this time it expects a new column of the crossbar in every cycle
-    compute      : OUT STD_LOGIC;                               --! Asserted while the computation is happening inside the crossbar, deasserted when it is done. During the computation time no new data should be sent to the crossbar
-    valid        : OUT STD_LOGIC                                --! Asserted when the crossbar has completed the computation. It signals that the data is ready to be read
+    clk           : IN STD_LOGIC;
+    rst_n         : IN STD_LOGIC;
+    instr         : IN INSTRUCTION;                              --! The instruction to be executed by the crossbar
+    data_in_comp  : IN int_array_ty(crossbar_rows - 1 DOWNTO 0); --! The data to be used computation, the data input comes in the form of 1D array equal to the number of rows in the crossbar (single column)
+    data_in_prog  : IN int_array_ty(crossbar_cols - 1 DOWNTO 0); --! The data to be used to program the array. The input comes in the form of 1D array equal to the number of columns (single row)
+    crossbar_rdy  : IN STD_LOGIC;                                --! Asserted while the crossbar is ready for a new operation. When this signal is deasserted, the crossbar can not receive a new instruction 
+    reading_prog  : OUT STD_LOGIC;                               --! Asserted while programming the crossbar. During this time it expects a new column of the crossbar in every cycle
+    compute_cross : OUT STD_LOGIC;                               --! Asserted while the computation is happening inside the crossbar, deasserted when it is done. During the computation time no new data should be sent to the crossbar
+    valid         : OUT STD_LOGIC                                --! Asserted when the crossbar has completed the computation. It signals that the data is ready to be read
   );
 END ENTITY;
 
@@ -50,11 +51,8 @@ BEGIN
   P_count : PROCESS (clk, rst_n)
   BEGIN
     IF rst_n = '0' THEN
-      counter     <= 0;
       row_counter <= 0;
     ELSIF rising_edge(clk) THEN
-      -- TODO need control logic here for the counter
-      counter <= counter + 1;
       -- Row counter is used to count the number of rows
       -- assembled during the programming phase
       IF state_reg = PROG THEN
@@ -93,29 +91,44 @@ BEGIN
 
   --! This process compiles the computation array and programs the crossbar
   P_prog : PROCESS (ALL)
-    VARIABLE prog_delay : TIME;
   BEGIN
-    data_assebled <= '0';
-    prog_delay := 500 ns; --TODO this should change to the proper delay based on the crossbar.
     IF (state_reg = PROG) THEN
-      prog_delay := prog_delay - period; --! Reduce the delay that it takes to program the crossbar based on the period
-      FOR i IN crossbar_rows - 1 DOWNTO 0 LOOP
-        assembled_prog (row_counter, i) <= data_in(i);
+      assembled_prog <= assembled_prog_reg;
+      reading_prog   <= '1';
+      -- Build a single row of the crossbar.
+      FOR i IN crossbar_cols - 1 DOWNTO 0 LOOP
+        assembled_prog (row_counter, i) <= data_in_prog(i);
       END LOOP;
-      IF (row_counter = crossbar_cols - 1) THEN
-        IF (prog_delay > 0 ns) THEN
+      -- Wait until all rows have been assembled
+      IF (row_counter = crossbar_rows - 1) THEN
+        IF (prog_delay > 0 ns) THEN -- delay to program the crossbar
           data_assebled <= custom_delay(prog_delay);
-        ELSE
+        ELSE -- If the delay is negative, we do not need to wait (i.e. the crossbar can program the data in every clock cycle)
           data_assebled <= '1';
         END IF;
       END IF;
+    ELSE
+      data_assebled  <= '0';
+      reading_prog   <= '0';
+      assembled_prog <= (OTHERS => (OTHERS => 0));
     END IF;
   END PROCESS;
 
-  -- TODO This process is emulating the timing behavior of the crossbar It creates the proper delays and translates the data from signed -> int
-  P_out : PROCESS (ALL)
+  --! This process send the data for computation to the crossbar and performs the matrix-vector multiplication
+  P_comp : PROCESS (ALL)
   BEGIN
-    --TODO this process should have the appropriate delays introduced
+    valid          <= '0';
+    compute_cross  <= '0';
+    assembled_comp <= (OTHERS => 0);
+    IF (state = COMP) THEN
+      assembled_comp <= data_in_comp;
+      compute_cross  <= '1';
+      IF (comp_delay > 0 ns) THEN
+        compute_done <= custom_delay(comp_delay);
+      ELSE
+        compute_done <= '1';
+      END IF;
+    END IF;
   END PROCESS;
 
 END ARCHITECTURE;
