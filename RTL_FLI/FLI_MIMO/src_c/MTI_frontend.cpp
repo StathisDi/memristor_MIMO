@@ -298,7 +298,8 @@ extern "C" void initForeign(
   mtiProcessIdT procid;
 
   inst = (instanceInfoT *)mti_Malloc(sizeof(instanceInfoT));
-  // Get id of the input signals
+  // TODO need to update this list with the correct path
+  //  Get id of the input signals
   inst->clk_id = mti_FindSignal("/MIMO_TOP/clk");
   inst->rst_id = mti_FindSignal("/MIMO_TOP/rst_n");
   inst->program_id = mti_FindSignal("/MIMO_TOP/program");
