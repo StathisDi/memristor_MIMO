@@ -99,6 +99,17 @@ In the `constants.vhd` set the following two parameters to match the ones in `wr
 
 You need to change these values and make sure they match, before compiling and simulating the RTL.
 
+The RTL also attempts to emulate the crossbar programming and computation delay, and synchronize everything with the clock. This is done using two parameters in the `constants.vhd` package. The two variables (`prog_delay`, `comp_delay`) are set to constant values (50ns for programming and 20ns for computation) to make it easier to run and test the simulation. A more accurate behavior simulation can be implemented by using the following equations to calculate the delay:
+
+- programming_time                  : TIME := (device_states - 1) * crossbar_rows * dt;
+- computation_time                 : TIME := bitwidth * dt;
+
+These times can be reduced by the number of clock cycles that the FSM takes to assemble the data. This is 1 clock cycle for the computation, and a number of cycles equal to the number of rows for the programming. That optimization can be made under the assumption that FSM ideally will send the data to program the crossbar row by row, while the python model operates over the full array.
+
+Optimized values:
+  - prog_delay = programming_time - period * (crossbar_rows)
+  - comp_delay = computation_time - period
+
 #### Configuring the FLI C
 
 In the MTI format you need to define the following compiler constants:

@@ -26,8 +26,8 @@ PACKAGE constants IS
   -- and delay the execution of the VHDL for the theoretical time that it takes to program the crossbar - the number of clocks that
   -- it took to assemble the data.
   -- This delay will emulate the delay that is required by the crossbar to program the values in the devices
-  CONSTANT programing_time                  : TIME := (device_states - 1) * crossbar_rows * dt;
+  CONSTANT programming_time                  : TIME := (device_states - 1) * crossbar_rows * dt;
   CONSTANT computation_time                 : TIME := bitwidth * dt;
-  CONSTANT prog_delay                       : TIME := 50 ns;--programing_time - period * (crossbar_rows + 1); -- Delay the porgram for the time minus the time that we take to assemble the data
-  CONSTANT comp_delay                       : TIME := 20 ns;--computation_time - period;
+  CONSTANT prog_delay                       : TIME := 50 ns;
+  CONSTANT comp_delay                       : TIME := 20 ns;
 END PACKAGE;
