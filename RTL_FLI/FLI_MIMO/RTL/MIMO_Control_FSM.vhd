@@ -85,11 +85,14 @@ BEGIN
     state <= state_reg;
     CASE state_reg IS
       WHEN IDLE =>
-        IF instr = PROGRAM_INST THEN
-          state <= PROG;
-        ELSIF instr = COMPUTE_INST THEN
-          REPORT "Entering COMPUTE state.";
-          state <= COMP;
+        -- Only move to computation if the crossbar is ready
+        IF crossbar_rdy = '1' THEN
+          IF instr = PROGRAM_INST THEN
+            state <= PROG;
+          ELSIF instr = COMPUTE_INST THEN
+            REPORT "Entering COMPUTE state.";
+            state <= COMP;
+          END IF;
         END IF;
 
       WHEN PROG =>

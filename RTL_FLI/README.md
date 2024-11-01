@@ -114,6 +114,12 @@ The VHDL currently is using integer as inputs. The python corssbar simulator cur
 The mapping in this version is done by directly normalizing the values to -1 to 1. This mapping can be changed by altering the
 mapping functions in the `util.h` file.
 
+#### Changing the design
+
+If the design is to be edited and the structure change, then the MTI_frontend needs to be edited as well to make sure that the correct signals are read from the C code.
+
+That can be done by editing the line 301 to 312 in the `MTI_frontend.cpp` file.
+
 # LICENSE
 
 MIT License

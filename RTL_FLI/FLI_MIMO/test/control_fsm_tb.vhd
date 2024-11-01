@@ -68,8 +68,9 @@ BEGIN
   -- Stimulus process
   stim_proc : PROCESS
   BEGIN
+    crossbar_rdy <= '1';
     -- Reset the system
-    rst_n <= '0';
+    rst_n        <= '0';
     WAIT FOR 20 ns;
     rst_n <= '1';
     WAIT UNTIL rising_edge(clk);
