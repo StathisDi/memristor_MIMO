@@ -2,6 +2,7 @@ LIBRARY ieee, work;
 USE ieee.std_logic_1164.ALL;
 USE work.data_types.ALL;
 USE work.constants.ALL;
+USE work.function_pack.ALL;
 
 --! This entity combines the control FSM and the memristive crossbar.
 ENTITY front_end_mem IS
@@ -76,5 +77,11 @@ BEGIN
       valid              => valid                -- To the output Computation complete
     );
 
-  -- TODO An output should be added (signed) and the real value output should be translated to int and then signed. The input is computed as return x / (float)(INT_MAX) * 100000; so the reversed should be used to go for real to int
+  -- Process that turns the output to integer
+  P_comb : PROCESS (ALL)
+  BEGIN
+    FOR i IN 0 TO crossbar_cols - 1 LOOP
+      data_output(i) <= real_to_integer(crossbar_output(i));
+    END LOOP;
+  END PROCESS;
 END sim;
