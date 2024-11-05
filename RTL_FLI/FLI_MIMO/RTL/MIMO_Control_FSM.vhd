@@ -40,14 +40,14 @@ ARCHITECTURE FSM OF MIMO_Control_FSM IS
 
 BEGIN
   program            <= data_assebled;
-  cross_compute_data <= assembled_comp_reg;
+  cross_compute_data <= assembled_comp;
+  compute            <= compute_done;
   -- This process interfaces with the digital part.
   -- It reads and assembles the data to be send to the crossbar
   -- and sets the correct signals.
   P_reg : PROCESS (clk, rst_n)
   BEGIN
     IF rst_n = '0' THEN
-      compute            <= '0';
       assembled_prog_reg <= (OTHERS => (OTHERS => 0));
       assembled_comp_reg <= (OTHERS => 0);
       state_reg          <= IDLE;
@@ -58,7 +58,6 @@ BEGIN
       assembled_prog_reg <= assembled_prog;
       state_reg          <= state;
       valid              <= compute_done;
-      compute            <= compute_done;
       last_state         <= state_reg;
     END IF;
   END PROCESS;

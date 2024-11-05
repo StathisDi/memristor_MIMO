@@ -30,7 +30,6 @@ BEGIN
       instr         => instr,
       data_in_comp  => data_in_comp,
       data_in_prog  => data_in_prog,
-      cross_rdy     => cross_rdy,
       data_output   => data_output,
       reading_prog  => reading_prog,
       compute_cross => compute_cross,
@@ -39,4 +38,41 @@ BEGIN
 
   clk   <= NOT clk AFTER 5 ns;
   rst_n <= '1' AFTER 3 ns;
+
+  Test_bench : PROCESS
+  BEGIN
+    WAIT FOR 20 ns;
+    IF (reading_prog = '1' AND compute_cross = '1') THEN
+      WAIT UNTIL (reading_prog = '0' AND compute_cross = '0');
+    END IF;
+    instr <= PROGRAM_INST;
+    FOR i IN 0 TO crossbar_rows - 1 LOOP
+      WAIT UNTIL rising_edge(clk);
+      FOR j IN 0 TO crossbar_cols - 1 LOOP
+        data_in_prog(j) <= program_val(i, j);
+      END LOOP;
+    END LOOP;
+    WAIT UNTIL rising_edge(clk);
+    data_in_prog <= (OTHERS => 0);
+    IF reading_prog = '1' THEN
+      instr <= IDLE_INST;
+      WAIT UNTIL reading_prog = '0';
+    END IF;
+    WAIT UNTIL rising_edge(clk);
+    IF (cross_rdy = '0') THEN
+      WAIT UNTIL cross_rdy = '1';
+    END IF;
+    instr <= COMPUTE_INST;
+    WAIT UNTIL rising_edge(clk);
+    instr <= IDLE_INST;
+    FOR i IN 0 TO crossbar_rows - 1 LOOP
+      data_in_comp(i) <= compute_val(i);
+    END LOOP;
+    WAIT UNTIL rising_edge(clk);
+    IF (compute_cross = '1') THEN
+      WAIT UNTIL compute_cross = '0';
+    END IF;
+    data_in_comp <= (OTHERS => 0);
+    stop;
+  END PROCESS; -- Test_bench
 END sim;

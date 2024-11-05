@@ -16,11 +16,12 @@ PACKAGE BODY function_pack IS
   -- that turns the integer to real based on the following
   -- formula: x / (float)(INT_MAX) * 100000;
   FUNCTION real_to_integer (input_real : REAL) RETURN INTEGER IS
-    CONSTANT INT_MAX                     : INTEGER := 2147483647;
+    CONSTANT INT_MAX                     : real := 2147483647.0;
     VARIABLE result                      : INTEGER;
     VARIABLE temp_real                   : REAL;
   BEGIN
-    temp_real := input_real * real(INT_MAX) / 100000.0;
+    temp_real := input_real / 100000.0;
+    temp_real := temp_real * INT_MAX;
     result    := INTEGER(temp_real);
     RETURN result;
   END FUNCTION real_to_integer;

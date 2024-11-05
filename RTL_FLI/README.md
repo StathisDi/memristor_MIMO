@@ -77,7 +77,11 @@ To use the script you need to define the proper paths for the Python and Questas
 
 Example: 
 
-`.\CompileFLI.ps1 -QSPath 'C:\custom\path\to\modelsim' -PyPath 'C:\custom\path\to\python' -Compiler 'C:\path\to\compiler\cl.exe' -SrcFile 'my_custom_file.cpp'"`
+1. `.\CompileFLI.ps1 -QSPath 'C:\custom\path\to\modelsim' -PyPath 'C:\custom\path\to\python' -Compiler 'C:\path\to\compiler\cl.exe' -SrcFile 'my_custom_file.cpp'"`
+
+2. If you create a make folder inside the FLI_MIMO folder and considering that the paths are the same as the default paths in the CompileFLI.ps1 script, running the following command inside the `make` folder using powershell to create the necessary files:
+
+`..\..\CompileFLI.ps1 -SrcFile ../src_c/MTI_frontend.cpp -Func initForeign -Out MTI_frontend.dll -Py`
 
 #### Compile in linux
 
@@ -129,7 +133,35 @@ mapping functions in the `util.h` file.
 
 If the design is to be edited and the structure change, then the MTI_frontend needs to be edited as well to make sure that the correct signals are read from the C code.
 
-That can be done by editing the line 301 to 312 in the `MTI_frontend.cpp` file.
+That can be done by editing the line 301 to 312 in the `MTI_frontend.cpp` file. The name of the signals should follow the hierarchy of the design implemented. 
+
+### Running an simulation
+
+The current design includes a basic testbench that allows the user to implement a very simple simulation of the crossbar design together with its digital interface.
+
+The testbench runs a simple program compute cycle that programs the crossbar design and the sends in a test vector that is used as input to the crossbar.
+
+The testbench is implemented inside the `MIMO_Top.vhd` file, in the `RTL/test` folder.
+
+To run the testbench the library file (`.dll` or `.so`). Once the file is created the `simulation.do` file can be used in Questasim to run the simulation.
+
+Take note, that the correct paths need to be set inside the simulation.do file that points to the compiled library. Specifically the `source_path` should point to the location of the library file, and the `file_name` should hold the name of the library file.
+
+Currently the device type is set to MF. The type can be changed by changing the type in the `wrapper.py` and generating a new device package for the VHDL.
+
+The current design is using a 3 rows and 2 columns, that can also be changed by editing the `constants.vhd` and `wrapper.py` files accordingly. Take note that the values in those two files must match.
+
+#### Changing the simulation environment
+
+If the simulation environment changes and a different testbench is to be used,the  `simulation.do` file must be edited accordingly.
+
+The following variables must be set:
+
+- set source_path "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/make"
+- set file_name "MTI_frontend.dll"
+- set top_name "work.MIMO_TB"
+
+The device type can be changed by changing the type in the `wrapper.py` and generating a new device package for the VHDL.
 
 # LICENSE
 

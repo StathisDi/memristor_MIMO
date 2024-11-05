@@ -16,8 +16,6 @@ ENTITY front_end_mem IS
     --! The data to be used to program the array. The input comes in the form of 1D array equal to the number of columns (single row)
     data_in_prog  : IN int_array_ty(crossbar_cols - 1 DOWNTO 0);
     --! When asserted new instructions can be sent to the crossbar
-    cross_rdy     : OUT STD_LOGIC;
-    --! The output of the crossbar
     data_output   : OUT int_array_ty(crossbar_cols - 1 DOWNTO 0);
     --! Asserted while programming the crossbar. During this time it expects a new column of the crossbar in every cycle
     reading_prog  : OUT STD_LOGIC;
@@ -59,7 +57,6 @@ BEGIN
   -- Instantiate the C defined architecture
   -- This essentially generates a process specified by the C function
   u_mti : mti_front;
-
   u_FSM : ENTITY work.MIMO_Control_FSM
     PORT MAP(
       clk                => clk,                 -- Input
@@ -80,8 +77,15 @@ BEGIN
   -- Process that turns the output to integer
   P_comb : PROCESS (ALL)
   BEGIN
-    FOR i IN 0 TO crossbar_cols - 1 LOOP
-      data_output(i) <= real_to_integer(crossbar_output(i));
-    END LOOP;
+    -- The if function here is used to avoid errors when the simulation starts.
+    -- Because the c emulation initializes the rea output of the crossbar to max_real we need to make sure that it is not passed to the function before it gets a usable value.
+    IF rst_n = '1' THEN
+      FOR i IN 0 TO crossbar_cols - 1 LOOP
+        data_output(i) <= real_to_integer(crossbar_output(i));
+      END LOOP;
+    ELSE
+      data_output <= (OTHERS => 0);
+    END IF;
   END PROCESS;
+
 END sim;

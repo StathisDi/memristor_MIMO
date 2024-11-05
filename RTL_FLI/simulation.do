@@ -3,7 +3,7 @@
 # Set the source file path and the file name
 set source_path "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/make"
 set file_name "MTI_frontend.dll"
-set top_name "work.top_array"
+set top_name "work.MIMO_TB"
 
 # Set the full source file path
 set full_source_path "${source_path}/${file_name}"

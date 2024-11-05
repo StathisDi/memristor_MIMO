@@ -99,6 +99,16 @@ static void program(void *param)
     mti_PrintFormatted("\n ");
   }
   double **float_values = intToFloat2D(prog_values, CRB_ROW, CRB_COL);
+  mti_PrintFormatted("[Program]\t\t Values read from RTL are:\n");
+  mti_PrintFormatted("Real:");
+  for (int i = 0; i < CRB_ROW; ++i)
+  {
+    for (int j = 0; j < CRB_COL; ++j)
+    {
+      mti_PrintFormatted("\t\t\t%G ", float_values[i][j]);
+    }
+    mti_PrintFormatted("\n ");
+  }
   // Sett the python arguments and function call
   mti_PrintFormatted("Call py\n");
   // Get the function from the module
@@ -300,16 +310,16 @@ extern "C" void initForeign(
   inst = (instanceInfoT *)mti_Malloc(sizeof(instanceInfoT));
   // TODO need to update this list with the correct path
   //  Get id of the input signals
-  inst->clk_id = mti_FindSignal("clk");
-  inst->rst_id = mti_FindSignal("rst_n");
-  inst->program_id = mti_FindSignal("program");
-  inst->compute_id = mti_FindSignal("compute");
-  inst->crossbar_input_prog_id = mti_FindSignal("crossbar_input_prog");
-  inst->crossbar_input_comp_id = mti_FindSignal("crossbar_input_comp");
+  inst->clk_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/clk");
+  inst->rst_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/rst_n");
+  inst->program_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/program");
+  inst->compute_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/compute");
+  inst->crossbar_input_prog_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/crossbar_input_prog");
+  inst->crossbar_input_comp_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/crossbar_input_comp");
 
   // Get ids of output signals
-  inst->crossbar_rdy_id = mti_FindSignal("crossbar_rdy");
-  inst->crossbar_output_id = mti_FindSignal("crossbar_output");
+  inst->crossbar_rdy_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/crossbar_rdy");
+  inst->crossbar_output_id = mti_FindSignal("/mimo_tb/front_end_mem_inst/crossbar_output");
 
   Py_Initialize();
   PyObject *sysPath = PySys_GetObject("path");
