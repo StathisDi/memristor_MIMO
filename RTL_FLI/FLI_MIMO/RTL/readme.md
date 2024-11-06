@@ -6,7 +6,7 @@ This is an RTL front end for the python crossbar simulator.
 
 ### Overview
 
-The Control FSM for the memristor MIMO system is responsible for managing the programming and computation operations of the crossbar. It ensures the correct timing and sequencing of these operations.
+The Control FSM for the memristor MIMO system is responsible for managing the programming and computation operations of the crossbar. It implements the timing and sequencing of these operations.
 
 ### Instructions
 
@@ -28,6 +28,27 @@ The FSM operates in the following states:
 - In the PROG state, the FSM assembles the programming data row by row and transitions back to IDLE once all rows are assembled and programmed. This is based on the delay set in the constants package.
 - In the COMP state, the FSM performs the computation and transitions back to IDLE once the computation is done.  This is based on the delay set in the constants package.
 - The FSM uses delays (prog_delay and comp_delay) to emulate the time required for programming and computation operations.
+
+### Output Signals
+
+| Signal Name         | Direction | Type                       | Description                                                                                           |
+|---------------------|-----------|----------------------------|-------------------------------------------------------------------------------------------------------|
+| cross_compute_data  | OUT       | int_array_ty               | Data sent to the crossbar for computation. This is a 1D array with the same number of elements as the rows in the crossbar. |
+| cross_program_data  | OUT       | int_2d_array_ty            | Data sent to the crossbar for programming. This is a 2D array with dimensions matching the rows and columns of the crossbar. |
+| reading_prog        | OUT       | STD_LOGIC                  | Asserted while programming the crossbar. During this time, it expects a new column of the crossbar in every cycle. |
+| compute_cross       | OUT       | STD_LOGIC                  | Asserted while the computation is happening inside the crossbar. Deasserted when it is done. During the computation time, no new data should be sent to the crossbar. |
+| program             | OUT       | STD_LOGIC                  | Control signal to program the crossbar.                                                               |
+| compute             | OUT       | STD_LOGIC                  | Control signal to compute using the crossbar.                                                         |
+| valid               | OUT       | STD_LOGIC                  | Asserted when the crossbar has completed the computation. It signals that the data is ready to be read. |
+
+### Input Signals
+
+| Signal Name        | Direction | Type            | Description                                                                                           |
+|--------------------|-----------|-----------------|-------------------------------------------------------------------------------------------------------|
+| instr              | IN        | INSTRUCTION     | Instruction signal indicating the operation to be performed (IDLE_INST, PROGRAM_INST, or COMPUTE_INST).|
+| data_in_comp       | IN        | int_array_ty    | Data input for computation, provided as a 1D array equal to the number of rows in the crossbar.       |
+| data_in_prog       | IN        | int_2d_array_ty | Data input for programming, provided as a 2D array with dimensions matching the rows and columns of the crossbar. |
+| crossbar_rdy       | IN        | STD_LOGIC       | Signal indicating whether the crossbar is ready for programming or computation.                       |
 
 ## front_end_mem
 
