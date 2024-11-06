@@ -57,20 +57,23 @@ The FSM operates in the following states:
 The `front_end_mem` entity combines the control FSM and the memristive crossbar. It emulates the timing required to program the crossbar and perform computations.
 
 ### Ports
+| Port Name       | Direction | Description                                                                 |
+|-----------------|-----------|-----------------------------------------------------------------------------|
+| instr           | IN        | Instruction to be executed by the crossbar (of type `INSTRUCTION`).         |
+| data_in_comp    | IN        | Data for computation, provided as a 1D array equal to the number of rows in the crossbar. |
+| data_in_prog    | IN        | Data for programming the array, provided as a 1D array equal to the number of columns in the crossbar. |
+| data_output     | OUT       | Output data from the crossbar, provided as a 1D array equal to the number of columns in the crossbar. |
+| reading_prog    | OUT       | Asserted while programming the crossbar.                                    |
+| compute_cross   | OUT       | Asserted while computation is happening inside the crossbar.                |
+| valid           | OUT       | Asserted when the crossbar has completed the computation.                   |
 
-- **clk**: Input clock signal.
-- **rst_n**: Active-low reset signal.
-- **instr**: Instruction to be executed by the crossbar (of type `INSTRUCTION`).
-- **data_in_comp**: Data for computation, provided as a 1D array equal to the number of rows in the crossbar.
-- **data_in_prog**: Data for programming the array, provided as a 1D array equal to the number of columns in the crossbar.
-- **data_output**: Output data from the crossbar, provided as a 1D array equal to the number of columns in the crossbar.
-- **reading_prog**: Asserted while programming the crossbar.
-- **compute_cross**: Asserted while computation is happening inside the crossbar.
-- **valid**: Asserted when the crossbar has completed the computation.
+### Components
 
-- **Components**:
-  - `mti_front`: Component for interfacing with the C-defined architecture.
-  - `MIMO_Control_FSM`: FSM for controlling the programming and computation operations.
+| Component Name | Description |
+|----------------|-------------|
+| `mti_front`    | Component for interfacing with the C-defined architecture. |
+| `MIMO_Control_FSM` | FSM for controlling the programming and computation operations. |
+
 
 ### Processes
 
