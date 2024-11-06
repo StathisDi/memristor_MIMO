@@ -26,7 +26,7 @@ END ENTITY;
 --! This control FSM is used to program the crossbar and perform the computation.
 --! It emulates the timing of the crossbar in terms of the delay needed to program or compute using the crossbar.
 ARCHITECTURE FSM OF MIMO_Control_FSM IS
-  TYPE STATE_ty IS (IDLE, PROG, COMP, DONE_ST, WAIT_RDY);
+  TYPE STATE_ty IS (IDLE, PROG, COMP);
   SIGNAL state, state_reg, last_state       : STATE_ty;
   SIGNAL counter                            : INTEGER;
   SIGNAL assembled_prog, assembled_prog_reg : int_2d_array_ty(crossbar_rows - 1 DOWNTO 0, crossbar_cols - 1 DOWNTO 0); -- This signal is used when we want to program the crossbar
