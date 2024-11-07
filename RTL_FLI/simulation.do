@@ -25,3 +25,21 @@ if {[file exists $file_name]} {
 }
 
 vsim -gui ${top_name} -voptargs=+acc
+
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/clk
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/rst_n
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/instr
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/data_in_comp
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/data_in_prog
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/data_output
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/reading_prog
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/compute_cross
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/valid
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/program
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/compute
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/crossbar_input_prog
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/crossbar_input_comp
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/crossbar_output
+add wave -position end  sim:/mimo_tb/front_end_mem_inst/crossbar_rdy
+
+run -all

@@ -56,6 +56,8 @@ The FSM operates in the following states:
 
 The `front_end_mem` entity combines the control FSM and the memristive crossbar. It emulates the timing required to program the crossbar and perform computations.
 
+This is the top component that can be used to connect an RTL design with the python backend.
+
 ### Ports
 | Port Name       | Direction | Description                                                                 |
 |-----------------|-----------|-----------------------------------------------------------------------------|

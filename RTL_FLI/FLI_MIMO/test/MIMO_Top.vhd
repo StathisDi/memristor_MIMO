@@ -22,7 +22,6 @@ ARCHITECTURE sim OF MIMO_TB IS
   SIGNAL compute_cross : STD_LOGIC;
   SIGNAL valid         : STD_LOGIC;
 BEGIN
-  --TODO test with ideal devices
   front_end_mem_inst : ENTITY work.front_end_mem
     PORT MAP(
       clk           => clk,
@@ -73,6 +72,8 @@ BEGIN
       WAIT UNTIL compute_cross = '0';
     END IF;
     data_in_comp <= (OTHERS => 0);
+    WAIT UNTIL rising_edge(clk);
+    WAIT UNTIL rising_edge(clk);
     stop;
   END PROCESS; -- Test_bench
 END sim;
