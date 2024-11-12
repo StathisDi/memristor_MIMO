@@ -9,6 +9,9 @@ This repository contains two separate parts. The first is the memristor crossbar
 ## For crossbar
 
 1) Python 3
+2) cuda
+3) pytorch
+4) matplotlib
 
 Installation instructions for python can be found [here](https://www.python.org/)!
 
