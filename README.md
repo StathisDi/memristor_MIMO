@@ -9,11 +9,8 @@ This repository contains two separate parts. The first is the memristor crossbar
 ## For crossbar
 
 1) Python 3
-2) PySpice
 
 Installation instructions for python can be found [here](https://www.python.org/)!
-
-Installation instructions for PySpice can be found [here](https://pyspice.fabrice-salvaire.fr/releases/v1.4/overview.html#how-to-install-pyspice)!
 
 ## For the data processing
 
