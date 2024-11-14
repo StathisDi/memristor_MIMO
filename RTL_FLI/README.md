@@ -93,7 +93,7 @@ To run the simulation in Questasim you need to copy the generated .dll, or .so, 
 
 You can also use the simulation.do script provided. There you can specify the location where the .so or .dll file is located. The .do script will automatically copy the file to the current directory and start the simulation. Note that the script does not compile the RTL, it assumes that the work library is already loaded in Questasim.
 
-To compile the HDL files in Questasim you can use the `hdlcompile.do` script. The script expects a `source_path` variable to be set. If the variable is not set inside the Questasim environment before you run the script it will take a default value. The default value assumes that you run Questasim from this directory.
+To compile the HDL files in Questasim you can use the `hdlcompile.do` script. The script expects a `source_path` variable to be set. If the variable is not set inside the Questasim environment before you run the script it will take a default value. The default value assumes that you run Questasim from inside the `FLI_MIMO` directory.
 
 ### Configure FLI C and RTL front-end
 
