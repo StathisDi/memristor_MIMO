@@ -1,17 +1,19 @@
 # Memristor_MIMO
 
-Experiments and simulation setup for MIMO in memory computation using memristors
+Experiments and simulation setup for the precoding operation of MIMO in memory computation using memristors.
+
+This repository contains two separate parts. The first is the memristor crossbar python simulator, that is added here as a module. The git repository for the python simulator exist and is maintained in a stand-alone repository https://github.com/JoyJXU/MemMIMO. The second part of this repository contains an RTL front-end that allows to interact with the python crossbar simulator using VHDL and the foreign language interface (FLI) that Questasim provides. The RTL can be used to implement a vector-matrix multiplication, where the matrix is programmed in the crossbar and then multiple vectors can be send to the crossbar to calculate the product of the two.
 
 # Requirements
 
 ## For crossbar
 
 1) Python 3
-2) PySpice
+2) cuda
+3) pytorch
+4) matplotlib
 
 Installation instructions for python can be found [here](https://www.python.org/)!
-
-Installation instructions for PySpice can be found [here](https://pyspice.fabrice-salvaire.fr/releases/v1.4/overview.html#how-to-install-pyspice)!
 
 ## For the data processing
 
@@ -24,6 +26,14 @@ To co-simulate the crossbar implemented in python together with the RTL models o
 To simulate the combined design you need Questasim/Modelsim, a c/c++ compiler and have python installed.
 
 The scripts to compile the c+python model and simulate it together with the RTL model of the digital side in windows can be found in the **RTL_FLI** folder.
+
+# Documentation and instructions
+
+In each directory of the repository there is a `README.md` file that includes guidelines on how to use the different tools, and also how to edit and modify them when needed. More specifically:
+
+1) In the `modules\MemMIMO\` you will find the readme file that explains how to set up and use the python simulator.
+2) In the `RTL_FLI` you will find instructions how to set up, compile and run a simulation of the RTL digital front-end.
+3) In the `RTL_FLI\FLI_MIMO\` you will find a readme file with documentation of the RTL designs that is used for to interface with python simulator, and also instructions on how to modify them.
 
 # LICENSE
 

@@ -189,10 +189,10 @@ Here we summarize all the variables and constants that can/have to be edited/mod
 
 The table bellow also lists the settings for the `CompileFLI.ps1` script.
 
-| Option Name | Initial Value | Description                                                                 | Required |
-|-------------|---------------|-----------------------------------------------------------------------------|----------|
-| `QSPath`    | `"C:\questasim64_2022.4"` | Specifies the path to the ModelSim installation directory. | Yes      |
-| `PyPath`    | `"C:\Program Files\Python311"` | Specifies the path to the Python installation directory. This is ignored when the `-Py` option is not used. | Yes      |
+| Option Name | Initial Value | Description                                                                 |
+|-------------|---------------|-----------------------------------------------------------------------------|
+| `QSPath`    | `"C:\questasim64_2022.4"` | Specifies the path to the ModelSim installation directory. | No      |
+| `PyPath`    | `"C:\Program Files\Python311"` | Specifies the path to the Python installation directory. This is ignored when the `-Py` option is not used. | No      |
 | `Compiler`  | `"cl"`        | Specifies the compiler executable (e.g., `cl`). | Yes      |
 | `SrcFile`   | `"fli_interface.cpp"` | Specifies the name of the source file to compile. | Yes      |
 | `DevShell`  | `"C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"` | Specifies the path to the development shell script for Windows. | Yes      |
