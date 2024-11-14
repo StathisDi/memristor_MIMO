@@ -1,7 +1,7 @@
 # Example Tcl script for QuestaSim
 
 # Set the source file path and the file name
-set source_path "C:/Users/Dimitris/Documents/github/memristor_MIMO/RTL_FLI/FLI_MIMO/make"
+set source_path "./make"
 set file_name "MTI_frontend.dll"
 set top_name "work.MIMO_TB"
 
